@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>はるかへ</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+:root {
+  --bg:       #0f0e17;
+  --bg2:      #1a1825;
+  --cream:    #f4e9d0;
+  --cream2:   #e8d9bc;
+  --gold:     #c9a86c;
+  --gold-l:   #e8c99a;
+  --text-d:   #2c2a20;
+  --text-c:   #f4e9d0;
+  --muted:    #8a8699;
+  --sat: env(safe-area-inset-top, 0px);
+  --sab: env(safe-area-inset-bottom, 0px);
+}
+html, body {
+  height: 100%;
+  font-family: 'Hiragino Mincho ProN','ヒラギノ明朝 ProN','YuMincho','游明朝',Georgia,serif;
+  background: var(--bg);
+  color: var(--text-c);
+  overscroll-behavior: none;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ─── INTRO ─── */
+#intro {
+  position: fixed; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  background: var(--bg);
+  z-index: 200;
+  transition: opacity 1s ease;
+}
+#intro.out { opacity: 0; pointer-events: none; }
+
+.intro-inner { text-align: center; padding: 2rem; }
+
+.intro-date {
+  font-size: .8rem; letter-spacing: .25em; color: var(--gold);
+  opacity: 0; animation: up 1s ease .4s forwards;
+}
+.intro-to {
+  font-size: 3.8rem; font-weight: normal; color: var(--cream); letter-spacing: .1em;
+  margin: .6rem 0 .3rem;
+  opacity: 0; animation: up 1s ease .9s forwards;
+}
+.intro-hbd {
+  font-size: 1rem; letter-spacing: .2em; color: var(--gold-l);
+  margin-bottom: 3.5rem;
+  opacity: 0; animation: up 1s ease 1.3s forwards;
+}
+.intro-btn {
+  background: none; border: 1px solid var(--gold); color: var(--gold-l);
+  font-family: inherit; font-size: .95rem; letter-spacing: .3em;
+  padding: .75rem 2.5rem; cursor: pointer; border-radius: 2px;
+  transition: background .25s, color .25s;
+  opacity: 0; animation: up 1s ease 1.8s forwards;
+}
+.intro-btn:active { background: var(--gold); color: var(--bg); }
+
+/* ─── MAIN LIST ─── */
+#main {
+  display: none; min-height: 100%;
+  padding: calc(var(--sat) + 2rem) 1.25rem calc(var(--sab) + 3rem);
+  max-width: 480px; margin: 0 auto;
+}
+#main.on { display: block; }
+
+.list-hdr { text-align: center; margin-bottom: 2.5rem; }
+.list-hdr small { display: block; font-size: .75rem; letter-spacing: .3em; color: var(--gold); margin-bottom: .4rem; }
+.list-hdr h2 { font-size: 1.2rem; font-weight: normal; }
+
+/* ─── ENVELOPE CARD ─── */
+.env-card {
+  position: relative; background: var(--cream); border-radius: 4px;
+  margin-bottom: 1.2rem; cursor: pointer; overflow: hidden;
+  box-shadow: 0 4px 24px rgba(0,0,0,.45);
+  transition: transform .18s, box-shadow .18s;
+}
+.env-card:active { transform: scale(.975); box-shadow: 0 2px 12px rgba(0,0,0,.45); }
+
+.env-flap {
+  position: absolute; top: 0; left: 0; right: 0; height: 64px; overflow: hidden;
+}
+.env-flap::before {
+  content: ''; position: absolute; top: 0; left: 50%; transform: translateX(-50%);
+  border-left: 260px solid transparent;
+  border-right: 260px solid transparent;
+  border-top: 64px solid var(--cream2);
+}
+
+.env-seal {
+  position: absolute; top: 18px; left: 50%; transform: translateX(-50%);
+  width: 34px; height: 34px; border-radius: 50%;
+  background: var(--gold); display: flex; align-items: center; justify-content: center;
+  font-size: .95rem; z-index: 2; box-shadow: 0 2px 8px rgba(0,0,0,.3);
+  transition: opacity .3s;
+}
+.env-card.done .env-seal { opacity: .45; }
+
+.env-body { padding: 3.8rem 1.5rem 1rem; color: var(--text-d); }
+.env-month { font-size: .7rem; letter-spacing: .2em; color: var(--gold); margin-bottom: .25rem; }
+.env-title { font-size: 1.25rem; margin-bottom: .3rem; }
+.env-sub   { font-size: .78rem; color: #7a7060; }
+
+.env-foot {
+  padding: .6rem 1.5rem .9rem; font-size: .72rem; letter-spacing: .1em;
+  color: #7a7060; text-align: right;
+}
+.env-card.done .env-foot { color: var(--gold); }
+
+/* future card */
+.env-card.future {
+  background: var(--bg2); border: 1px solid var(--gold);
+}
+.env-card.future .env-flap::before { border-top-color: rgba(201,168,108,.15); }
+.env-card.future .env-seal { background: none; border: 1px solid var(--gold); color: var(--gold-l); font-size: .7rem; }
+.env-card.future .env-month { color: var(--gold-l); }
+.env-card.future .env-title { color: var(--text-c); }
+.env-card.future .env-sub   { color: var(--muted); }
+.env-card.future .env-foot  { color: var(--muted); }
+
+/* ─── DETAIL OVERLAY ─── */
+#detail {
+  position: fixed; inset: 0; background: var(--bg);
+  z-index: 100; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  transform: translateY(100%);
+  transition: transform .4s cubic-bezier(.22,1,.36,1);
+}
+#detail.open { transform: translateY(0); }
+
+.det-hdr {
+  position: sticky; top: 0;
+  background: rgba(15,14,23,.92);
+  backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px);
+  padding: calc(var(--sat) + .7rem) 1.25rem .7rem;
+  display: flex; align-items: center; gap: 1rem;
+  border-bottom: 1px solid rgba(201,168,108,.2); z-index: 10;
+}
+.det-back {
+  background: none; border: none; color: var(--gold);
+  font-family: inherit; font-size: .9rem; cursor: pointer; padding: .3rem 0;
+  letter-spacing: .05em; white-space: nowrap;
+}
+.det-label { flex: 1; text-align: center; font-size: .78rem; letter-spacing: .2em; color: var(--gold-l); }
+
+.det-body {
+  padding: 2rem 1.25rem calc(var(--sab) + 3rem);
+  max-width: 480px; margin: 0 auto;
+}
+
+.det-month { font-size: .7rem; letter-spacing: .25em; color: var(--gold); margin-bottom: .4rem; }
+.det-title { font-size: 1.75rem; font-weight: normal; color: var(--cream); margin-bottom: 1.75rem; line-height: 1.5; }
+
+.det-story {
+  font-size: .97rem; line-height: 2.1; color: var(--cream);
+  margin-bottom: 2rem; opacity: .9;
+}
+
+/* photo gallery */
+.gallery {
+  margin: 0 -1.25rem 2rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+}
+.gallery::-webkit-scrollbar { display: none; }
+.gallery-row {
+  display: flex; gap: .75rem; padding: 0 1.25rem;
+}
+.gallery-row img {
+  height: 210px; width: auto; border-radius: 4px; flex-shrink: 0;
+  object-fit: cover; box-shadow: 0 4px 16px rgba(0,0,0,.4);
+}
+.gallery-one img {
+  width: 100%; height: auto; max-height: 320px; object-fit: cover;
+  border-radius: 4px; margin-bottom: 2rem; box-shadow: 0 4px 20px rgba(0,0,0,.4);
+}
+
+/* love list */
+.love-hdr {
+  font-size: .7rem; letter-spacing: .25em; color: var(--gold);
+  padding-bottom: .6rem; margin-bottom: 1.2rem;
+  border-bottom: 1px solid rgba(201,168,108,.3);
+}
+.love-list { list-style: none; }
+.love-item {
+  display: flex; gap: 1rem; padding: .9rem 0;
+  border-bottom: 1px solid rgba(255,255,255,.06);
+  color: var(--cream); font-size: .93rem; line-height: 1.75; align-items: flex-start;
+}
+.love-n { color: var(--gold); font-size: .78rem; flex-shrink: 0; margin-top: .25rem; min-width: 2rem; }
+
+/* future letter */
+.future-body { font-size: .97rem; line-height: 2.2; color: var(--cream); opacity: .9; }
+.future-body p + p { margin-top: 1.2em; }
+
+/* ─── ANIMATIONS ─── */
+@keyframes up {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+</style>
+</head>
+<body>
+
+<!-- ═══ INTRO ═══ -->
+<div id="intro">
+  <div class="intro-inner">
+    <p class="intro-date">2025.09 — 2026.06</p>
+    <h1 class="intro-to">はるかへ</h1>
+    <p class="intro-hbd">お誕生日おめでとう</p>
+    <button class="intro-btn" onclick="start()">開ける</button>
+  </div>
+</div>
+
+<!-- ═══ LIST ═══ -->
+<div id="main">
+  <div class="list-hdr">
+    <small>10 MONTHS</small>
+    <h2>2人の記録</h2>
+  </div>
+  <div id="cards"></div>
+</div>
+
+<!-- ═══ DETAIL ═══ -->
+<div id="detail">
+  <div class="det-hdr">
+    <button class="det-back" onclick="closeDetail()">← 戻る</button>
+    <span class="det-label" id="det-label"></span>
+    <span style="min-width:50px"></span>
+  </div>
+  <div class="det-body" id="det-body"></div>
+</div>
+
+<script>
+/* ─────────────── DATA ─────────────── */
+const MONTHS = [
+  {
+    id:'2025-09', label:'2025年9月', sub:'はじまりの月',
+    story:`9月15日、仕事終わりに会いに来てくれた。\n「時間を忘れて楽しむなんて本当にありえないくらいのこと」\nその言葉を見た時、この人は正直な人だと思った。\n\n9月28日、カワウソカフェへ。動物たちの待遇を気にして、何個もレビューを読み比べてくれた。\n「ぜんぜんめちゃくちゃ気を使ってるわけじゃないので、私のデフォルトがしんさんのツボにはまっているだけですね」\nそのセリフで、俺は完全に好きになった。`,
+    loves:[
+      '疲れた中でも「楽しかった」とちゃんと言ってくれる素直さ',
+      '動物たちの待遇を気にして、レビューを読み比べる優しさ',
+      '「スマートさは求めてない」と気を遣わせない大らかさ',
+      '「私のデフォルトがツボにはまっているだけ」という自然体の可愛さ',
+      '朝の早い仕事なのに電話に出てくれた優しさ',
+      '「矢部遥香」という字を教えてくれた時、この名前が好きになった',
+      'カワウソカフェをどこにするか、一緒に悩んでくれた丁寧さ',
+      '「寝る子と遊ぶ子でブースが別れてるの最高ですね」と言える感性',
+      '「また会いましょうね！」と先に言ってくれた積極さ',
+      '「時間を忘れて楽しんだ」と正直に伝えてくれたこと',
+    ]
+  },
+  {
+    id:'2025-10', label:'2025年10月', sub:'どんどん好きになった月',
+    story:`一緒に「国宝」を見て、原宿で迷子になって、池袋でうろうろして、横浜で夜を過ごした。予定はコロコロ変わったし、うまくいかないこともあった。それでも毎回、はるかといると時間が飛ぶように過ぎた。\n\n「会ってる時半分、鬱陶しいくらいなのに今居ないからめちゃくちゃ物足りない」\nこの言葉で、俺もそうだって気づいた。`,
+    loves:[
+      '雨の日に「正直に言うなら帰りたい」と素直に伝えてくれた勇気',
+      '「ワガママを言わせてくれる人が嬉しい」と言ってくれた言葉',
+      '「返信めんどくさい気分だけど全部読んだよ」という正直さ',
+      '「慎平が私にワガママを言わせてくれる人っていうのが嬉しい」という感覚',
+      '会って話した時の印象と、LINEの印象が全く同じだったこと',
+      '「元々持ってる考え方や行動の軸が合う人がいい」という明確な価値観',
+      '「迎合と気遣いは違う」と言い切れる誠実さ',
+      '「3日後にね」が金曜日だった——だから「日付で言おう」になった',
+      '慎平断ちが3日ともたなかった、その素直さが愛おしい',
+      '「慎平のこと考えてる時間が半分以上」と照れずに言ってくれた',
+    ]
+  },
+  {
+    id:'2025-11', label:'2025年11月', sub:'もっと近づいた月',
+    story:`コンサートに行って、軽井沢への旅を計画して、IKEAで一緒にうろうろした。\n「なんでも慎平と一緒にやりたくなっちゃう」と連絡がきた時、俺もそうだって、すごく嬉しかった。\n\n「慎平のいいところはさ、知らないことを相手が知ってたときに素直にへ〜！ってなるところだよね。変に高いプライドとかなくてとてもすてき」\nこの言葉で、俺は正直にいれる自分でいようと思った。`,
+    loves:[
+      '部屋の片付けを自分でして、来る前に整えてくれる丁寧さ',
+      '「なんでも一緒にやりたくなっちゃって」と言ってくれる素直さ',
+      '慎平のいいところを、ちゃんと言葉にして伝えてくれる眼力',
+      '「いっぱい学ばせてもらってる」と素直に認める謙虚さ',
+      '軽井沢への移動プランを複数パターン比較して提案してくれた計画性',
+      '「文字だと伝わらないから電話に」と自分で判断して切り替えた決断力',
+      '「先約を優先していいのよ」と先回りして気遣ってくれる優しさ',
+      '「全然結婚するからよろしく」とさらっと言える度胸と愛情',
+      '「今年は慎平に出会えて、本当にいい年でした」と言ってくれた言葉',
+      '「軽くならないでくださいね」と、重さをちゃんと受け取ってくれたこと',
+    ]
+  },
+  {
+    id:'2025-12', label:'2025年12月', sub:'旅をした月',
+    story:`有楽町で合鍵を作った。軽井沢で2泊3日、教会でキャンドルを灯した。クリスマスを一緒に過ごした。\n\n「これ以上の幸せないかも」って言ってくれた時、俺もそう思ってた。`,
+    loves:[
+      '合鍵を作ることに「いいよ」と言ってくれた信頼',
+      '軽井沢での身分証の不備に自分で気づいて問い合わせた気遣い',
+      '「私は食事のこだわりないから慎平が好きな方選んで」と相手に任せる優しさ',
+      '「これ以上の幸せないかも☺️」と素直に表現できる感性',
+      '「お金使って欲しくて会う訳じゃないから。会いたいから会うんだから」という言葉',
+      '「愛してるよ！自信を持って🥰」とはっきり言ってくれる力強さ',
+      '「私たちって良い意味で物の価格と感動が比例しない感じある」という眼差し',
+      '「後悔だけは人生でしたくないから、慎平となら大丈夫という自信あります」',
+      '「明確な理由なくてもこうしてくれたら嬉しいは全然いってね」と安心させてくれた',
+      '雪の軽井沢を一緒に歩いてくれたこと、その景色が忘れられない',
+    ]
+  },
+  {
+    id:'2026-01', label:'2026年1月', sub:'はじめてぶつかった月',
+    story:`初めてちゃんとぶつかった。俺のデリカシーのない一言で、はるかを傷つけた。それでも「慎平のことはちっとも変わらず好きなんだけど、ちょっと考えます」と言ってくれた。ケンカの後、何時間も話し合った。「毎回好きになってる」と言ってくれた時、また一つ近づけた気がした。\n\nはるかの誕生日、めちゃくちゃ祝ってくれてありがとう。あの夜が忘れられない。`,
+    loves:[
+      'ぶつかった後も「慎平のことはちっとも変わらず好き」と言ってくれた',
+      '「毎回好きになってる」という言葉',
+      '「腹を割って話し合えてる時点で、私だいぶ慎平が好きだな」と言ってくれた',
+      '「人類最後の2人なら別れなんてないでしょ、そういう感覚」を持っていること',
+      '「なんか慎平傘ないだろうなってきはしてた」と先読みしてくれる',
+      '「記念日や誕生日、小さいイベントまで大切にしたくて」という価値観',
+      '「同じものを同じ目線で楽しめる人がいい」という言葉、俺がそうでありたかった',
+      '誕生日当日、終始楽しそうにしてくれたこと',
+      '「これからずっと自信もって向き合えるよ☺️」と言ってくれた言葉',
+      '「お互いのためにね」とフェアな関係を大切にしてくれる姿勢',
+    ]
+  },
+  {
+    id:'2026-02', label:'2026年2月', sub:'二人の軸を確かめた月',
+    story:`ふたりの「当たり前」を一つずつ確かめていった月だった。LINEへの返し方、時間の使い方、価値観の細かいところを話し合った。はるかが自分の気持ちに正直に向き合ってくれるから、俺も正直でいられた。\n\n「慎平のことが大好きだから、一緒にいる未来が見えてるからこそ言える」\nそういう言葉をもらえる関係に、感謝してる。`,
+    loves:[
+      '「これじゃセフレと変わらない」と感じた時に黙らず伝えてくれた誠実さ',
+      '「浮気はしない。選択肢は別れるか付き合い続けるかの2択しかない」という芯の強さ',
+      '「記念日はその日にしか楽しめない、代替がきかない」という大切にする姿勢',
+      '「初めてのホワイトデーだから、ちゃんとその日にデートしたかった」という気持ち',
+      '「慎平が好きすぎておかしくなってたと思います🥲」という素直な告白',
+      '自分の考え方の偏りを「我が身可愛さの自分勝手由来だから」と笑って言える自己認識',
+      '「不満はなくていいんだけど、でも聞かせてほしい」と相手の気持ちを引き出そうとする',
+      '「相手のためにね」という言葉が、自然に出てくること',
+      'ディズニーに一緒に行きたいと思ってくれていたこと（いつか絶対行こう）',
+      '「慎平となら大丈夫」という言葉が、俺の支えになっていること',
+    ]
+  },
+  {
+    id:'2026-03', label:'2026年3月', sub:'大人になろうとした月',
+    story:`無人島旅行があって、大ケンカがあって、それでも話し合った。\n「何度だって嫌だと思ったら指摘するし拗ねるし怒る」とはるかは言った。本気で怒ってくれる人がいることが、どれだけ大切か。\n\n「相手の行動で嫌だと思ったことを我慢し続けるのを、唯一選べる家族になる人に対してまでやりたくない」\nその言葉は、俺の背筋を正してくれた。`,
+    loves:[
+      '「何度だって嫌だと思ったら指摘するし拗ねるし怒る」と言える関係への本気さ',
+      '「予定を立ててくれることが愛」という価値観を言語化して教えてくれた',
+      '「考えてるだけじゃ伝わらないからね」と行動と言葉の大切さを示してくれる',
+      '無人島から帰ってきた時、ちゃんと怒ってくれたこと',
+      '「私は今の6畳1間に2人暮らしでもぜーんぜん幸せ」という言葉',
+      '「80年続けて、いい人生だったって言って死ぬの」という覚悟',
+      '「慎平に会いたくないと言われたのはショックだし、でも無理やり会わせようとは言えない」という相手を尊重する強さ',
+      '俺のASD傾向を理解した上で、成長の可能性を見出してくれたこと',
+      '「家族になる人にまで我慢し続けたくない」という誠実さ',
+      '星空の下でも「私と一緒じゃないことを除けばめっちゃ羨ましい」と素直に言うところ',
+    ]
+  },
+  {
+    id:'2026-04', label:'2026年4月', sub:'新しいスタートの月',
+    story:`慎平が新しい職場に行き始めた。お好み焼きとたこ焼きを一緒に作って、ホットプレートを囲んだ。はるかの両親に会いに行くことになった。GWの計画を立てながら、「ずっとそばにいたい」と思った。`,
+    loves:[
+      'ささみを保冷機能付き内袋に入れて持ってきてくれた細やかさ',
+      '「ワイシャツ置いてったら洗濯してアイロンしておくよ」という気遣い',
+      '「50社超えても慎平を信じてる」と就活中も揺るがなかった信頼',
+      'クラシックコンサートの楽しみ方を丁寧に教えてくれた',
+      '「両親は人見知りだけど大丈夫」と正直に事前に教えてくれた',
+      '「ゾウ乗りにはいきたいかも、ラクダとか」と俺の夢に乗ってくれた',
+      'お好み焼き&牛丼が上手くいかなくて、笑い飛ばしてくれたこと',
+      '「枕から慎平の匂いがして落ち着かない」という何気ない一言',
+      '「今の6畳1間でも幸せ」と物より一緒にいることを選んでくれること',
+      '初出勤を「頑張ってね」より「楽しんでね！」と送り出してくれた',
+    ]
+  },
+  {
+    id:'2026-05', label:'2026年5月', sub:'夜光虫を見た月',
+    story:`草津に日帰りで行って、夜光虫を見た。光る海を並んで見て、「こんな場所があるんだな」と思った。ホタテを一時間かけてむきながら、ふたりで話した。\n\nどんな場所でも、はるかといれば特別になる。`,
+    loves:[
+      '草津まで一緒に行ってくれた行動力と好奇心',
+      '夜光虫の光に「きれい」と言えるまっすぐな感性',
+      'ホタテを一時間かけて、楽しそうにむいていたこと',
+      '「いねいねちゃんと電話したかった😭 今日もとっても愛してるよ🥰🥰」という言葉',
+      '「うどん食べてたら10時半までに話すチャンスを逃してくやしい」と悔しがってくれる',
+      '「考えることほとんど同じかもしれないの、めちゃくちゃおもしろい」と共鳴してくれる',
+      'パパからのウサギ写真を「後ろ足が太りすぎて閉じてない」と送ってくれる可愛さ',
+      '「あかちゃん作る時までしまっといてね」と遠い未来も一緒に想像してくれること',
+      '「いねちゃんとの未来のためにおちんぎんほしいので出社します😭」という言葉',
+      'どんな日も「愛してるよ」を忘れない人であること',
+    ]
+  },
+  {
+    id:'2026-06', label:'2026年6月', sub:'今ここにいる月',
+    story:`台風の日も、豚キムチの日も、百均の日も、全部が大切な記憶。\n「1時間に1回は慎平のことかんがえる」と言ってくれた。\n「宇宙で1番愛してるよ」と言ったら「とっっっても！！だいすき！🥰🥰」と全力で返してくれた。\n\n「いねちゃんとの未来のためにおちんぎんほしいので出社します😭」\n毎日そんなふうに生きてくれているはるかが、俺の誇りです。`,
+    loves:[
+      '台風でびしょびしょになりながらも「今日も頑張ろうね😭愛してるよ」と送ってくれた',
+      '池袋で朝から服を探して、それでも「やっと会えるね☺️」と笑ってくれた',
+      '「電車止まっても這ってでも行くよ😭」と仕事を大切にする責任感',
+      '豚キムチが半額だからって、夜中に一人で調理した几帳面さ（と美味しさ）',
+      '「いねちゃんはやっぱりすごいね」と、こっちがまだ信じてない時に信じてくれた',
+      '百均まで自転車で一緒に行って、そんな日も楽しくしてくれる力',
+      '「品川のエリート社員とともに社畜通路をかっぽしてきた🥹」という表現の面白さ',
+      '「とっっっても！！だいすき！🥰🥰」と全力で返してくれること',
+      'どんな日常の中にも「愛してる」を言い続けてくれること',
+      '毎日、はるかでいてくれること',
+    ]
+  },
+];
+
+/* ─── これからの手紙 (ここに自分で書く) ─── */
+const FUTURE_LETTER = `
+<p>はるかへ</p>
+<p><!-- ここに書く --></p>
+`;
+
+/* ─────────────── STATE ─────────────── */
+const opened = new Set(JSON.parse(localStorage.getItem('hk-opened') || '[]'));
+let photos = {};
+
+/* ─────────────── PHOTOS ─────────────── */
+async function loadPhotos() {
+  try {
+    const r = await fetch('photos.json');
+    if (r.ok) photos = await r.json();
+  } catch(e) {}
+}
+
+/* ─────────────── INTRO ─────────────── */
+function start() {
+  const el = document.getElementById('intro');
+  el.classList.add('out');
+  setTimeout(() => {
+    el.style.display = 'none';
+    document.getElementById('main').classList.add('on');
+  }, 1000);
+}
+
+/* ─────────────── RENDER LIST ─────────────── */
+function renderCards() {
+  const wrap = document.getElementById('cards');
+  wrap.innerHTML = '';
+
+  MONTHS.forEach((m, i) => {
+    const done = opened.has(m.id);
+    const el = document.createElement('div');
+    el.className = 'env-card' + (done ? ' done' : '');
+    el.innerHTML = `
+      <div class="env-flap"></div>
+      <div class="env-seal">${done ? '✓' : '✉'}</div>
+      <div class="env-body">
+        <div class="env-month">${m.label}</div>
+        <div class="env-title">＜${m.sub}＞</div>
+        <div class="env-sub">好きなところ ${i*10+1}〜${i*10+10}</div>
+      </div>
+      <div class="env-foot">${done ? '開封済み' : 'タップして開ける →'}</div>
+    `;
+    el.onclick = () => openMonth(m.id);
+    wrap.appendChild(el);
+  });
+
+  /* これからの手紙 */
+  const fut = document.createElement('div');
+  fut.className = 'env-card future';
+  fut.innerHTML = `
+    <div class="env-flap"></div>
+    <div class="env-seal">✦</div>
+    <div class="env-body">
+      <div class="env-month">これからへ</div>
+      <div class="env-title">最後の封筒</div>
+      <div class="env-sub">これからの手紙</div>
+    </div>
+    <div class="env-foot">タップして開ける →</div>
+  `;
+  fut.onclick = () => openFuture();
+  wrap.appendChild(fut);
+}
+
+/* ─────────────── OPEN MONTH ─────────────── */
+function openMonth(id) {
+  const m = MONTHS.find(x => x.id === id);
+  if (!m) return;
+
+  opened.add(id);
+  localStorage.setItem('hk-opened', JSON.stringify([...opened]));
+  renderCards();
+
+  const idx = MONTHS.findIndex(x => x.id === id);
+  const start = idx * 10 + 1;
+  const ps = photos[id] || [];
+
+  let photoHTML = '';
+  if (ps.length === 1) {
+    photoHTML = `<div class="gallery-one"><img src="photos/${id}/${ps[0]}" loading="lazy" alt=""></div>`;
+  } else if (ps.length > 1) {
+    photoHTML = `<div class="gallery"><div class="gallery-row">${
+      ps.map(p => `<img src="photos/${id}/${p}" loading="lazy" alt="">`).join('')
+    }</div></div>`;
+  }
+
+  document.getElementById('det-label').textContent = m.label;
+  document.getElementById('det-body').innerHTML = `
+    <div class="det-month">${m.label}</div>
+    <div class="det-title">＜${m.sub}＞</div>
+    <div class="det-story">${m.story.replace(/\n/g,'<br>')}</div>
+    ${photoHTML}
+    <div class="love-hdr">好きなところ ${start}〜${start+9}</div>
+    <ul class="love-list">
+      ${m.loves.map((l,i) => `<li class="love-item"><span class="love-n">${start+i}</span><span>${l}</span></li>`).join('')}
+    </ul>
+  `;
+
+  showDetail(m.label);
+}
+
+/* ─────────────── OPEN FUTURE ─────────────── */
+function openFuture() {
+  document.getElementById('det-label').textContent = 'これからの手紙';
+  document.getElementById('det-body').innerHTML = `
+    <div class="det-month">これからへ</div>
+    <div class="det-title">最後の封筒</div>
+    <div class="future-body">${FUTURE_LETTER}</div>
+  `;
+  showDetail('これからの手紙');
+}
+
+/* ─────────────── DETAIL HELPERS ─────────────── */
+function showDetail(label) {
+  const det = document.getElementById('detail');
+  det.scrollTop = 0;
+  requestAnimationFrame(() => det.classList.add('open'));
+}
+function closeDetail() {
+  document.getElementById('detail').classList.remove('open');
+}
+
+/* swipe down to close */
+let ty0 = 0;
+const det = document.getElementById('detail');
+det.addEventListener('touchstart', e => { ty0 = e.touches[0].clientY; }, { passive: true });
+det.addEventListener('touchend', e => {
+  if (e.changedTouches[0].clientY - ty0 > 80 && det.scrollTop < 10) closeDetail();
+}, { passive: true });
+
+/* ─────────────── INIT ─────────────── */
+(async () => {
+  await loadPhotos();
+  renderCards();
+})();
+</script>
+</body>
+</html>

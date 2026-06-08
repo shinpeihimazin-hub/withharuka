@@ -459,8 +459,8 @@ function initMosaic(photoData) {
     const dist  = Math.max(window.innerWidth, window.innerHeight) * 1.2;
     const sx    = Math.round(Math.cos(angle) * dist);
     const sy    = Math.round(Math.sin(angle) * dist);
-    const dur   = (.7 + Math.random() * .4).toFixed(2);
-    const delay = (.05 + i * .016).toFixed(3);
+    const dur   = (1.4 + Math.random() * .8).toFixed(2);
+    const delay = (.05 + i * .035).toFixed(3);
     const bg = photoUrls.length > 0
       ? `background-image:url("${photoUrls[i % photoUrls.length]}");background-size:cover;background-position:center`
       : `background:${fallback[i % fallback.length]}`;
@@ -477,7 +477,7 @@ function initMosaic(photoData) {
     });
   }));
 
-  const settle = (.05 + targets.length * .016 + 1.0) * 1000;
+  const settle = (.05 + targets.length * .035 + 2.2) * 1000;
   const show = (id, dt) => setTimeout(() => {
     const el = document.getElementById(id);
     if (el) { el.style.opacity = '1'; el.style.transform = 'translateY(0)'; }

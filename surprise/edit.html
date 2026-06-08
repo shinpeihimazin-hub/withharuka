@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<title>編集モード</title>
+<style>
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --bg: #111; --card: #1e1e1e; --border: #333; --gold: #c9a86c;
+  --text: #f0f0f0; --muted: #888; --accent: #4a8fd4;
+}
+body { background: var(--bg); color: var(--text); font-family: -apple-system, sans-serif; font-size: 14px; padding-bottom: 4rem; }
+
+/* ─── LOCK ─── */
+#lock {
+  position: fixed; inset: 0; background: var(--bg);
+  display: flex; align-items: center; justify-content: center; flex-direction: column;
+  gap: 1rem; z-index: 100;
+}
+#lock h1 { font-size: 1.2rem; color: var(--gold); }
+#lock input {
+  background: var(--card); border: 1px solid var(--border); color: var(--text);
+  padding: .6rem 1rem; border-radius: 6px; font-size: 1rem; text-align: center;
+  width: 200px;
+}
+#lock button {
+  background: var(--gold); color: #111; border: none;
+  padding: .6rem 2rem; border-radius: 6px; font-size: .95rem; cursor: pointer;
+}
+#lock .err { color: #e05555; font-size: .85rem; }
+
+/* ─── HEADER ─── */
+.top-bar {
+  position: sticky; top: 0; background: rgba(17,17,17,.95);
+  backdrop-filter: blur(10px);
+  padding: .75rem 1rem; display: flex; align-items: center; gap: .75rem;
+  border-bottom: 1px solid var(--border); z-index: 10;
+}
+.top-bar h2 { flex: 1; font-size: .9rem; color: var(--gold); }
+.btn-done {
+  background: var(--gold); color: #111; border: none;
+  padding: .5rem 1.2rem; border-radius: 6px; font-size: .85rem; cursor: pointer; font-weight: 600;
+}
+
+/* ─── MONTH TABS ─── */
+.tabs {
+  display: flex; overflow-x: auto; gap: .4rem; padding: .75rem 1rem;
+  scrollbar-width: none; border-bottom: 1px solid var(--border);
+}
+.tabs::-webkit-scrollbar { display: none; }
+.tab {
+  flex-shrink: 0; background: var(--card); border: 1px solid var(--border);
+  color: var(--muted); padding: .4rem .9rem; border-radius: 20px;
+  font-size: .8rem; cursor: pointer; transition: all .2s;
+}
+.tab.active { background: var(--gold); color: #111; border-color: var(--gold); font-weight: 600; }
+
+/* ─── SECTION ─── */
+.section { display: none; padding: 1rem; }
+.section.active { display: block; }
+
+.field-label {
+  font-size: .72rem; letter-spacing: .1em; color: var(--muted);
+  text-transform: uppercase; margin-bottom: .4rem; margin-top: 1.25rem;
+}
+.field-label:first-child { margin-top: 0; }
+
+textarea, .love-input {
+  width: 100%; background: var(--card); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px; padding: .65rem .8rem;
+  font-family: inherit; font-size: .9rem; line-height: 1.6; resize: vertical;
+  transition: border-color .2s;
+}
+textarea:focus, .love-input:focus { outline: none; border-color: var(--gold); }
+textarea { min-height: 120px; }
+
+.love-rows { display: flex; flex-direction: column; gap: .4rem; }
+.love-row {
+  display: flex; gap: .5rem; align-items: flex-start;
+}
+.love-num {
+  flex-shrink: 0; width: 1.8rem; padding-top: .7rem;
+  font-size: .75rem; color: var(--gold); text-align: center;
+}
+.love-input { flex: 1; }
+
+/* ─── FUTURE ─── */
+#future-section { display: none; padding: 1rem; }
+#future-section.active { display: block; }
+#future-section p { font-size: .85rem; color: var(--muted); margin-bottom: 1rem; line-height: 1.7; }
+
+/* ─── OUTPUT ─── */
+#output-wrap {
+  display: none; position: fixed; inset: 0; background: rgba(0,0,0,.85);
+  z-index: 200; padding: 1.5rem; display: none; flex-direction: column; gap: 1rem;
+}
+#output-wrap.show { display: flex; }
+#output-wrap h3 { color: var(--gold); font-size: .95rem; }
+#output-wrap p  { color: var(--muted); font-size: .82rem; line-height: 1.6; }
+#output-box {
+  flex: 1; background: var(--card); border: 1px solid var(--border);
+  color: var(--text); border-radius: 6px; padding: .75rem; font-size: .72rem;
+  font-family: monospace; overflow-y: auto; white-space: pre-wrap; word-break: break-all;
+}
+.btn-copy {
+  background: var(--accent); color: #fff; border: none;
+  padding: .65rem 1rem; border-radius: 6px; font-size: .9rem; cursor: pointer;
+}
+.btn-close-out {
+  background: var(--card); color: var(--muted); border: 1px solid var(--border);
+  padding: .65rem 1rem; border-radius: 6px; font-size: .9rem; cursor: pointer;
+}
+</style>
+</head>
+<body>
+
+<!-- ─── LOCK ─── -->
+<div id="lock">
+  <h1>🔒 編集モード</h1>
+  <input type="password" id="pw-input" placeholder="パスワード" onkeydown="if(event.key==='Enter')checkPw()">
+  <button onclick="checkPw()">ログイン</button>
+  <p class="err" id="pw-err"></p>
+</div>
+
+<!-- ─── MAIN ─── -->
+<div id="app" style="display:none">
+
+  <div class="top-bar">
+    <h2>編集モード</h2>
+    <button class="btn-done" onclick="exportJSON()">完了してコピー</button>
+  </div>
+
+  <div class="tabs" id="tabs"></div>
+
+  <div id="sections"></div>
+
+  <div id="future-section">
+    <div class="field-label">これからの手紙</div>
+    <textarea id="future-text" placeholder="ここに「これからの手紙」を書く&#10;（HTMLタグも使えます：&lt;p&gt;、&lt;br&gt;など）" style="min-height:240px"></textarea>
+  </div>
+
+</div>
+
+<!-- ─── OUTPUT MODAL ─── -->
+<div id="output-wrap">
+  <h3>このテキストをコピーしてClaudeに送ってください</h3>
+  <p>「編集完了」と一緒に下のテキストを貼り付けてください。Claudeがサイトに反映します。</p>
+  <div id="output-box"></div>
+  <button class="btn-copy" onclick="copyOutput()">📋 コピーする</button>
+  <button class="btn-close-out" onclick="document.getElementById('output-wrap').classList.remove('show')">閉じる</button>
+</div>
+
+<script>
+const PASSWORD = 'shinpei';
+
+const MONTH_LABELS = [
+  '9月','10月','11月','12月','1月','2月','3月','4月','5月','6月','これからの手紙'
+];
+const MONTH_IDS = [
+  '2025-09','2025-10','2025-11','2025-12',
+  '2026-01','2026-02','2026-03','2026-04','2026-05','2026-06','future'
+];
+
+// Initial data (pulled from index.html)
+const INIT = {
+  '2025-09': {
+    story: `9月15日、仕事終わりに会いに来てくれた。\n「時間を忘れて楽しむなんて本当にありえないくらいのこと」\nその言葉を見た時、この人は正直な人だと思った。\n\n9月28日、カワウソカフェへ。動物たちの待遇を気にして、何個もレビューを読み比べてくれた。\n「ぜんぜんめちゃくちゃ気を使ってるわけじゃないので、私のデフォルトがしんさんのツボにはまっているだけですね」\nそのセリフで、俺は完全に好きになった。`,
+    loves: ['疲れた中でも「楽しかった」とちゃんと言ってくれる素直さ','動物たちの待遇を気にして、レビューを読み比べる優しさ','「スマートさは求めてない」と気を遣わせない大らかさ','「私のデフォルトがツボにはまっているだけ」という自然体の可愛さ','朝の早い仕事なのに電話に出てくれた優しさ','「矢部遥香」という字を教えてくれた時、この名前が好きになった','カワウソカフェをどこにするか、一緒に悩んでくれた丁寧さ','「寝る子と遊ぶ子でブースが別れてるの最高ですね」と言える感性','「また会いましょうね！」と先に言ってくれた積極さ','「時間を忘れて楽しんだ」と正直に伝えてくれたこと']
+  },
+  '2025-10': {
+    story: `一緒に「国宝」を見て、原宿で迷子になって、池袋でうろうろして、横浜で夜を過ごした。予定はコロコロ変わったし、うまくいかないこともあった。それでも毎回、はるかといると時間が飛ぶように過ぎた。\n\n「会ってる時半分、鬱陶しいくらいなのに今居ないからめちゃくちゃ物足りない」\nこの言葉で、俺もそうだって気づいた。`,
+    loves: ['雨の日に「正直に言うなら帰りたい」と素直に伝えてくれた勇気','「ワガママを言わせてくれる人が嬉しい」と言ってくれた言葉','「返信めんどくさい気分だけど全部読んだよ」という正直さ','「慎平が私にワガママを言わせてくれる人っていうのが嬉しい」という感覚','会って話した時の印象と、LINEの印象が全く同じだったこと','「元々持ってる考え方や行動の軸が合う人がいい」という明確な価値観','「迎合と気遣いは違う」と言い切れる誠実さ','「3日後にね」が金曜日だった——だから「日付で言おう」になった','慎平断ちが3日ともたなかった、その素直さが愛おしい','「慎平のこと考えてる時間が半分以上」と照れずに言ってくれた']
+  },
+  '2025-11': {
+    story: `コンサートに行って、軽井沢への旅を計画して、IKEAで一緒にうろうろした。\n「なんでも慎平と一緒にやりたくなっちゃう」と連絡がきた時、俺もそうだって、すごく嬉しかった。\n\n「慎平のいいところはさ、知らないことを相手が知ってたときに素直にへ〜！ってなるところだよね。変に高いプライドとかなくてとてもすてき」\nこの言葉で、俺は正直にいれる自分でいようと思った。`,
+    loves: ['部屋の片付けを自分でして、来る前に整えてくれる丁寧さ','「なんでも一緒にやりたくなっちゃって」と言ってくれる素直さ','慎平のいいところを、ちゃんと言葉にして伝えてくれる眼力','「いっぱい学ばせてもらってる」と素直に認める謙虚さ','軽井沢への移動プランを複数パターン比較して提案してくれた計画性','「文字だと伝わらないから電話に」と自分で判断して切り替えた決断力','「先約を優先していいのよ」と先回りして気遣ってくれる優しさ','「全然結婚するからよろしく」とさらっと言える度胸と愛情','「今年は慎平に出会えて、本当にいい年でした」と言ってくれた言葉','「軽くならないでくださいね」と、重さをちゃんと受け取ってくれたこと']
+  },
+  '2025-12': {
+    story: `有楽町で合鍵を作った。軽井沢で2泊3日、教会でキャンドルを灯した。クリスマスを一緒に過ごした。\n\n「これ以上の幸せないかも」って言ってくれた時、俺もそう思ってた。`,
+    loves: ['合鍵を作ることに「いいよ」と言ってくれた信頼','軽井沢での身分証の不備に自分で気づいて問い合わせた気遣い','「私は食事のこだわりないから慎平が好きな方選んで」と相手に任せる優しさ','「これ以上の幸せないかも☺️」と素直に表現できる感性','「お金使って欲しくて会う訳じゃないから。会いたいから会うんだから」という言葉','「愛してるよ！自信を持って🥰」とはっきり言ってくれる力強さ','「私たちって良い意味で物の価格と感動が比例しない感じある」という眼差し','「後悔だけは人生でしたくないから、慎平となら大丈夫という自信あります」','「明確な理由なくてもこうしてくれたら嬉しいは全然いってね」と安心させてくれた','雪の軽井沢を一緒に歩いてくれたこと、その景色が忘れられない']
+  },
+  '2026-01': {
+    story: `初めてちゃんとぶつかった。俺のデリカシーのない一言で、はるかを傷つけた。それでも「慎平のことはちっとも変わらず好きなんだけど、ちょっと考えます」と言ってくれた。ケンカの後、何時間も話し合った。「毎回好きになってる」と言ってくれた時、また一つ近づけた気がした。\n\nはるかの誕生日、めちゃくちゃ祝ってくれてありがとう。あの夜が忘れられない。`,
+    loves: ['ぶつかった後も「慎平のことはちっとも変わらず好き」と言ってくれた','「毎回好きになってる」という言葉','「腹を割って話し合えてる時点で、私だいぶ慎平が好きだな」と言ってくれた','「人類最後の2人なら別れなんてないでしょ、そういう感覚」を持っていること','「なんか慎平傘ないだろうなってきはしてた」と先読みしてくれる','「記念日や誕生日、小さいイベントまで大切にしたくて」という価値観','「同じものを同じ目線で楽しめる人がいい」という言葉、俺がそうでありたかった','誕生日当日、終始楽しそうにしてくれたこと','「これからずっと自信もって向き合えるよ☺️」と言ってくれた言葉','「お互いのためにね」とフェアな関係を大切にしてくれる姿勢']
+  },
+  '2026-02': {
+    story: `ふたりの「当たり前」を一つずつ確かめていった月だった。LINEへの返し方、時間の使い方、価値観の細かいところを話し合った。はるかが自分の気持ちに正直に向き合ってくれるから、俺も正直でいられた。\n\n「慎平のことが大好きだから、一緒にいる未来が見えてるからこそ言える」\nそういう言葉をもらえる関係に、感謝してる。`,
+    loves: ['「これじゃセフレと変わらない」と感じた時に黙らず伝えてくれた誠実さ','「浮気はしない。選択肢は別れるか付き合い続けるかの2択しかない」という芯の強さ','「記念日はその日にしか楽しめない、代替がきかない」という大切にする姿勢','「初めてのホワイトデーだから、ちゃんとその日にデートしたかった」という気持ち','「慎平が好きすぎておかしくなってたと思います🥲」という素直な告白','自分の考え方の偏りを「我が身可愛さの自分勝手由来だから」と笑って言える自己認識','「不満はなくていいんだけど、でも聞かせてほしい」と相手の気持ちを引き出そうとする','「相手のためにね」という言葉が、自然に出てくること','ディズニーに一緒に行きたいと思ってくれていたこと（いつか絶対行こう）','「慎平となら大丈夫」という言葉が、俺の支えになっていること']
+  },
+  '2026-03': {
+    story: `無人島旅行があって、大ケンカがあって、それでも話し合った。\n「何度だって嫌だと思ったら指摘するし拗ねるし怒る」とはるかは言った。本気で怒ってくれる人がいることが、どれだけ大切か。\n\n「相手の行動で嫌だと思ったことを我慢し続けるのを、唯一選べる家族になる人に対してまでやりたくない」\nその言葉は、俺の背筋を正してくれた。`,
+    loves: ['「何度だって嫌だと思ったら指摘するし拗ねるし怒る」と言える関係への本気さ','「予定を立ててくれることが愛」という価値観を言語化して教えてくれた','「考えてるだけじゃ伝わらないからね」と行動と言葉の大切さを示してくれる','無人島から帰ってきた時、ちゃんと怒ってくれたこと','「私は今の6畳1間に2人暮らしでもぜーんぜん幸せ」という言葉','「80年続けて、いい人生だったって言って死ぬの」という覚悟','「慎平に会いたくないと言われたのはショックだし、でも無理やり会わせようとは言えない」という相手を尊重する強さ','俺のASD傾向を理解した上で、成長の可能性を見出してくれたこと','「家族になる人にまで我慢し続けたくない」という誠実さ','星空の下でも「私と一緒じゃないことを除けばめっちゃ羨ましい」と素直に言うところ']
+  },
+  '2026-04': {
+    story: `慎平が新しい職場に行き始めた。お好み焼きとたこ焼きを一緒に作って、ホットプレートを囲んだ。はるかの両親に会いに行くことになった。GWの計画を立てながら、「ずっとそばにいたい」と思った。`,
+    loves: ['ささみを保冷機能付き内袋に入れて持ってきてくれた細やかさ','「ワイシャツ置いてったら洗濯してアイロンしておくよ」という気遣い','「50社超えても慎平を信じてる」と就活中も揺るがなかった信頼','クラシックコンサートの楽しみ方を丁寧に教えてくれた','「両親は人見知りだけど大丈夫」と正直に事前に教えてくれた','「ゾウ乗りにはいきたいかも、ラクダとか」と俺の夢に乗ってくれた','お好み焼き&牛丼が上手くいかなくて、笑い飛ばしてくれたこと','「枕から慎平の匂いがして落ち着かない」という何気ない一言','「今の6畳1間でも幸せ」と物より一緒にいることを選んでくれること','初出勤を「頑張ってね」より「楽しんでね！」と送り出してくれた']
+  },
+  '2026-05': {
+    story: `草津に日帰りで行って、夜光虫を見た。光る海を並んで見て、「こんな場所があるんだな」と思った。ホタテを一時間かけてむきながら、ふたりで話した。\n\nどんな場所でも、はるかといれば特別になる。`,
+    loves: ['草津まで一緒に行ってくれた行動力と好奇心','夜光虫の光に「きれい」と言えるまっすぐな感性','ホタテを一時間かけて、楽しそうにむいていたこと','「いねいねちゃんと電話したかった😭 今日もとっても愛してるよ🥰🥰」という言葉','「うどん食べてたら10時半までに話すチャンスを逃してくやしい」と悔しがってくれる','「考えることほとんど同じかもしれないの、めちゃくちゃおもしろい」と共鳴してくれる','パパからのウサギ写真を「後ろ足が太りすぎて閉じてない」と送ってくれる可愛さ','「あかちゃん作る時までしまっといてね」と遠い未来も一緒に想像してくれること','「いねちゃんとの未来のためにおちんぎんほしいので出社します😭」という言葉','どんな日も「愛してるよ」を忘れない人であること']
+  },
+  '2026-06': {
+    story: `台風の日も、豚キムチの日も、百均の日も、全部が大切な記憶。\n「1時間に1回は慎平のことかんがえる」と言ってくれた。\n「宇宙で1番愛してるよ」と言ったら「とっっっても！！だいすき！🥰🥰」と全力で返してくれた。\n\n「いねちゃんとの未来のためにおちんぎんほしいので出社します😭」\n毎日そんなふうに生きてくれているはるかが、俺の誇りです。`,
+    loves: ['台風でびしょびしょになりながらも「今日も頑張ろうね😭愛してるよ」と送ってくれた','池袋で朝から服を探して、それでも「やっと会えるね☺️」と笑ってくれた','「電車止まっても這ってでも行くよ😭」と仕事を大切にする責任感','豚キムチが半額だからって、夜中に一人で調理した几帳面さ（と美味しさ）','「いねちゃんはやっぱりすごいね」と、こっちがまだ信じてない時に信じてくれた','百均まで自転車で一緒に行って、そんな日も楽しくしてくれる力','「品川のエリート社員とともに社畜通路をかっぽしてきた🥹」という表現の面白さ','「とっっっても！！だいすき！🥰🥰」と全力で返してくれること','どんな日常の中にも「愛してる」を言い続けてくれること','毎日、はるかでいてくれること']
+  },
+  'future': { story: '' }
+};
+
+/* ─── STATE ─── */
+let current = '2025-09';
+
+function checkPw() {
+  const val = document.getElementById('pw-input').value;
+  if (val === PASSWORD) {
+    document.getElementById('lock').style.display = 'none';
+    document.getElementById('app').style.display = 'block';
+    buildUI();
+  } else {
+    document.getElementById('pw-err').textContent = 'パスワードが違います';
+  }
+}
+
+function buildUI() {
+  const tabs = document.getElementById('tabs');
+  const secs = document.getElementById('sections');
+
+  MONTH_IDS.forEach((id, i) => {
+    /* tab */
+    const tab = document.createElement('div');
+    tab.className = 'tab' + (id === current ? ' active' : '');
+    tab.textContent = MONTH_LABELS[i];
+    tab.onclick = () => switchTab(id);
+    tabs.appendChild(tab);
+
+    if (id === 'future') return;
+
+    /* section */
+    const d = INIT[id];
+    const sec = document.createElement('div');
+    sec.className = 'section' + (id === current ? ' active' : '');
+    sec.id = 'sec-' + id;
+
+    const loveRows = d.loves.map((l, j) => `
+      <div class="love-row">
+        <span class="love-num">${i*10+j+1}</span>
+        <input class="love-input" type="text" value="${escHtml(l)}" data-love="${j}">
+      </div>`).join('');
+
+    sec.innerHTML = `
+      <div class="field-label">その月の物語</div>
+      <textarea data-story>${d.story}</textarea>
+      <div class="field-label">好きなところ ${i*10+1}〜${i*10+10}</div>
+      <div class="love-rows">${loveRows}</div>
+    `;
+    secs.appendChild(sec);
+  });
+
+  /* future textarea */
+  document.getElementById('future-text').value = INIT.future.story || '';
+}
+
+function switchTab(id) {
+  current = id;
+  document.querySelectorAll('.tab').forEach((t, i) => {
+    t.classList.toggle('active', MONTH_IDS[i] === id);
+  });
+  document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+  document.getElementById('future-section').classList.remove('active');
+
+  if (id === 'future') {
+    document.getElementById('future-section').classList.add('active');
+  } else {
+    const sec = document.getElementById('sec-' + id);
+    if (sec) sec.classList.add('active');
+  }
+}
+
+function exportJSON() {
+  const out = {};
+  MONTH_IDS.forEach(id => {
+    if (id === 'future') {
+      out.future = document.getElementById('future-text').value;
+      return;
+    }
+    const sec = document.getElementById('sec-' + id);
+    if (!sec) return;
+    const story = sec.querySelector('[data-story]').value;
+    const loves = [...sec.querySelectorAll('[data-love]')].map(el => el.value);
+    out[id] = { story, loves };
+  });
+
+  const json = JSON.stringify(out, null, 2);
+  document.getElementById('output-box').textContent = json;
+  document.getElementById('output-wrap').classList.add('show');
+}
+
+function copyOutput() {
+  const text = document.getElementById('output-box').textContent;
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.btn-copy');
+    btn.textContent = '✅ コピーしました！';
+    setTimeout(() => btn.textContent = '📋 コピーする', 2000);
+  });
+}
+
+function escHtml(s) {
+  return s.replace(/&/g,'&amp;').replace(/"/g,'&quot;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+</script>
+</body>
+</html>

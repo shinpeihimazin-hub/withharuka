@@ -504,7 +504,7 @@ function openMonth(id) {
   let photoHTML = '';
   if (ps.length > 0) {
     photoHTML = `<div class="gallery"><div class="gallery-row">${
-      ps.map((p, i) => `<div class="polaroid" style="animation-delay:${.1+i*.1}s"><img src="photos/${id}/${p}" loading="lazy" alt=""></div>`).join('')
+      ps.map((p, i) => `<div class="polaroid" style="animation-delay:${.1+i*.1}s"><img src="photos/${p}" loading="lazy" alt=""></div>`).join('')
     }</div></div>`;
   }
 

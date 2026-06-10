@@ -110,6 +110,16 @@ body::before {
 .intro-btn:active::before { transform: scaleX(1); }
 .intro-btn:active { color: var(--bg); }
 
+.skip-btn {
+  position: absolute;
+  top: calc(var(--sat) + 1rem); right: 1.25rem;
+  background: none; border: none;
+  color: var(--muted); font-family: inherit;
+  font-size: .72rem; letter-spacing: .15em;
+  cursor: pointer; padding: .4rem .5rem;
+  opacity: 0; transition: opacity .7s ease;
+}
+
 /* ─── MAIN LIST ─── */
 #main {
   display: none; min-height: 100%; position: relative; z-index: 1;
@@ -340,6 +350,7 @@ body::before {
     <h1 class="intro-to" id="intro-to">はるかへ</h1>
     <p class="intro-hbd" id="intro-hbd">お誕生日おめでとう</p>
     <button class="intro-btn" id="intro-btn" onclick="start()">開ける</button>
+  <button class="skip-btn" id="skip-btn" onclick="skipToMain()">手紙へ →</button>
   </div>
 </div>
 
@@ -530,6 +541,10 @@ function initMosaic(photoData) {
   show('intro-to',   350);
   show('intro-hbd',  650);
   show('intro-btn',  950);
+  setTimeout(() => {
+    const el = document.getElementById('skip-btn');
+    if (el) el.style.opacity = '.45';
+  }, settle + 1200);
 }
 
 /* ─────────── PHOTOS ─────────── */
@@ -541,6 +556,15 @@ async function loadPhotos() {
 }
 
 /* ─────────── INTRO → VIDEO → MAIN ─────────── */
+function skipToMain() {
+  const intro = document.getElementById('intro');
+  intro.classList.add('out');
+  setTimeout(() => {
+    intro.style.display = 'none';
+    document.getElementById('main').classList.add('on');
+  }, 900);
+}
+
 function start() {
   const vid = document.getElementById('main-video');
   vid.volume = 0;

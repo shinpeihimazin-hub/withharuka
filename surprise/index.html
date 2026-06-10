@@ -568,16 +568,27 @@ function skipToMain() {
 
 function start() {
   const vid = document.getElementById('main-video');
-  vid.volume = 0;
-  vid.play().catch(() => goToMain());
 
-  // Volume 0 → 1 over 10 seconds
-  let vol = 0;
-  const ramp = setInterval(() => {
-    vol = Math.min(1, vol + 0.01);
-    vid.volume = vol;
-    if (vol >= 1) clearInterval(ramp);
-  }, 100);
+  // iOS blocks vid.volume changes — use Web Audio API for volume ramp
+  try {
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    const src = ctx.createMediaElementSource(vid);
+    const gain = ctx.createGain();
+    src.connect(gain);
+    gain.connect(ctx.destination);
+    gain.gain.setValueAtTime(0.001, ctx.currentTime);
+    gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 10);
+  } catch(e) {
+    vid.volume = 0;
+    let vol = 0;
+    const ramp = setInterval(() => {
+      vol = Math.min(1, vol + 0.01);
+      vid.volume = vol;
+      if (vol >= 1) clearInterval(ramp);
+    }, 100);
+  }
+
+  vid.play().catch(() => goToMain());
 
   document.getElementById('intro').classList.add('out');
   setTimeout(() => {

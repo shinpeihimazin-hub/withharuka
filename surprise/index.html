@@ -568,32 +568,6 @@ function skipToMain() {
 
 function start() {
   const vid = document.getElementById('main-video');
-
-  try {
-    const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const src  = ctx.createMediaElementSource(vid);
-    const gain = ctx.createGain();
-    src.connect(gain);
-    gain.connect(ctx.destination);
-    gain.gain.value = 0.001;
-    ctx.resume();
-
-    let g = 0.001;
-    const ramp = setInterval(() => {
-      g = Math.min(1, g + 0.01);
-      gain.gain.value = g;
-      if (g >= 1) clearInterval(ramp);
-    }, 100);
-  } catch(e) {
-    vid.volume = 0;
-    let vol = 0;
-    const ramp = setInterval(() => {
-      vol = Math.min(1, vol + 0.01);
-      vid.volume = vol;
-      if (vol >= 1) clearInterval(ramp);
-    }, 100);
-  }
-
   vid.play().catch(() => goToMain());
 
   document.getElementById('intro').classList.add('out');

@@ -382,9 +382,10 @@ body::before {
 
 <!-- ═══ PREROLL ═══ -->
 <div id="preroll-screen">
-  <p class="preroll-msg" id="pr1">誕生日おめでとう！</p>
-  <p class="preroll-msg" id="pr2">幸せな10ヶ月をありがとう</p>
-  <p class="preroll-msg" id="pr3">とっても幸せだよ</p>
+  <p class="preroll-msg" id="pr1">うなうなちゃん</p>
+  <p class="preroll-msg" id="pr2">うなうなうなちゃん</p>
+  <p class="preroll-msg" id="pr3">うなげろりん</p>
+  <p class="preroll-msg" id="pr4">うなあああああああああ</p>
 </div>
 <audio id="preroll-audio" preload="auto">
   <source src="preroll.m4a" type="audio/mp4">
@@ -392,8 +393,7 @@ body::before {
 
 <!-- ═══ OUTRO ═══ -->
 <div id="outro-screen">
-  <p class="outro-msg" id="ou1">生まれてきてくれてありがとう！</p>
-  <p class="outro-msg" id="ou2">愛してるよ！</p>
+  <p class="outro-msg" id="ou1">ずっと愛してるよ</p>
 </div>
 
 <!-- ═══ VIDEO ═══ -->
@@ -601,6 +601,9 @@ function startPreroll() {
   document.getElementById('preroll-screen').classList.add('on');
 
   const audio = document.getElementById('preroll-audio');
+  const vid   = document.getElementById('main-video');
+
+  // Ramp up: 0 → 1 over ~12.5s
   if (audio) {
     audio.volume = 0;
     audio.play().catch(() => {});
@@ -615,14 +618,28 @@ function startPreroll() {
   const show = (id, t) => setTimeout(() => document.getElementById(id)?.classList.add('show'), t);
   const hide = (id, t) => setTimeout(() => document.getElementById(id)?.classList.remove('show'), t);
 
-  show('pr1',  500); hide('pr1', 3800);
-  show('pr2', 4400); hide('pr2', 8300);
-  show('pr3', 8900);
+  // 4 messages over 11 seconds
+  show('pr1',  500); hide('pr1', 2900);
+  show('pr2', 3400); hide('pr2', 6000);
+  show('pr3', 6500); hide('pr3', 9000);
+  show('pr4', 9500); hide('pr4', 11200);
 
+  // Fade out preroll audio at 11s over 2s → no hard cut
+  setTimeout(() => {
+    if (!audio) return;
+    const fadeOut = setInterval(() => {
+      audio.volume = Math.max(0, audio.volume - 0.05);
+      if (audio.volume <= 0) { audio.pause(); clearInterval(fadeOut); }
+    }, 100);
+  }, 11000);
+
+  // Switch to video at 13s
   setTimeout(() => {
     document.getElementById('preroll-screen').classList.add('out');
     document.getElementById('video-screen').classList.add('on');
-    document.getElementById('main-video').play().catch(() => goToMain());
+    vid.volume = 1;
+    vid.muted  = false;
+    vid.play().catch(() => goToMain());
   }, 13000);
 }
 
@@ -631,8 +648,7 @@ function goToMain() {
 
   const oscreen = document.getElementById('outro-screen');
   oscreen.classList.add('on');
-  setTimeout(() => document.getElementById('ou1')?.classList.add('show'), 300);
-  setTimeout(() => document.getElementById('ou2')?.classList.add('show'), 1200);
+  setTimeout(() => document.getElementById('ou1')?.classList.add('show'), 400);
 
   setTimeout(() => {
     oscreen.classList.add('out');
@@ -640,7 +656,7 @@ function goToMain() {
       oscreen.style.pointerEvents = 'none';
       document.getElementById('main').classList.add('on');
     }, 1500);
-  }, 3800);
+  }, 3500);
 }
 
 /* ─────────── RENDER CARDS ─────────── */

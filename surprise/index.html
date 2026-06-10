@@ -568,7 +568,7 @@ function skipToMain() {
 function start() {
   const vid = document.getElementById('main-video');
   vid.volume = 0;
-  vid.play().catch(() => {});
+  vid.play().catch(() => goToMain());
 
   // Volume 0 → 1 over 10 seconds
   let vol = 0;

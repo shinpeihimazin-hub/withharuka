@@ -279,54 +279,6 @@ body::before {
 .future-body { font-size: .97rem; line-height: 2.2; color: var(--cream); opacity: .9; animation: fadeIn .6s ease; }
 .future-body p + p { margin-top: 1.2em; }
 
-/* ─── PREROLL SCREEN ─── */
-#preroll-screen {
-  position: fixed; inset: 0; z-index: 160;
-  background: var(--bg);
-  display: flex; align-items: center; justify-content: center;
-  opacity: 0; pointer-events: none;
-  transition: opacity .8s ease;
-}
-#preroll-screen.on  { opacity: 1; pointer-events: auto; }
-#preroll-screen.out { opacity: 0; pointer-events: none; }
-
-.preroll-msg {
-  position: absolute;
-  font-size: 1.08rem;
-  letter-spacing: .32em;
-  color: var(--cream);
-  text-align: center;
-  padding: 0 2rem;
-  opacity: 0;
-  transition: opacity .9s ease;
-  line-height: 2;
-}
-.preroll-msg.show { opacity: 1; }
-
-/* ─── OUTRO SCREEN ─── */
-#outro-screen {
-  position: fixed; inset: 0; z-index: 155;
-  background: var(--bg);
-  display: flex; flex-direction: column;
-  align-items: center; justify-content: center; gap: 1.4rem;
-  opacity: 0; pointer-events: none;
-  transition: opacity 1.5s ease;
-}
-#outro-screen.on  { opacity: 1; pointer-events: auto; }
-#outro-screen.out { opacity: 0; pointer-events: none; }
-
-.outro-msg {
-  font-size: 1.08rem;
-  letter-spacing: .28em;
-  color: var(--cream);
-  text-align: center;
-  padding: 0 2rem;
-  opacity: 0;
-  transition: opacity .8s ease;
-  line-height: 2;
-}
-.outro-msg.show { opacity: 1; }
-
 /* ─── VIDEO SCREEN ─── */
 #video-screen {
   position: fixed; inset: 0; z-index: 150;
@@ -336,10 +288,21 @@ body::before {
 }
 #video-screen.on  { opacity: 1; pointer-events: auto; }
 #video-screen.out { opacity: 0; pointer-events: none; }
-#video-screen video {
-  width: 100%; height: 100%;
-  object-fit: cover;
+#video-screen video { width: 100%; height: 100%; object-fit: cover; }
+
+#vid-overlay {
+  position: absolute; inset: 0;
+  display: flex; align-items: center; justify-content: center;
+  pointer-events: none;
 }
+.vid-msg {
+  position: absolute;
+  font-size: 1.08rem; letter-spacing: .32em;
+  color: var(--cream); text-align: center;
+  padding: 0 2rem; opacity: 0;
+  transition: opacity .9s ease; line-height: 2;
+}
+.vid-msg.show { opacity: 1; }
 
 /* ─── CONFETTI ─── */
 .confetti-wrap {
@@ -380,27 +343,22 @@ body::before {
   </div>
 </div>
 
-<!-- ═══ PREROLL ═══ -->
-<div id="preroll-screen">
-  <p class="preroll-msg" id="pr1">うなうなちゃん</p>
-  <p class="preroll-msg" id="pr2">うなうなうなちゃん</p>
-  <p class="preroll-msg" id="pr3">うなげろりん</p>
-  <p class="preroll-msg" id="pr4">うなあああああああああ</p>
-</div>
-<audio id="preroll-audio" preload="auto">
-  <source src="preroll.m4a" type="audio/mp4">
-</audio>
-
 <!-- ═══ OUTRO ═══ -->
-<div id="outro-screen">
-  <p class="outro-msg" id="ou1">ずっと愛してるよ</p>
+<div id="outro-screen" style="position:fixed;inset:0;z-index:155;background:var(--bg);display:flex;align-items:center;justify-content:center;opacity:0;pointer-events:none;transition:opacity 1.5s ease;">
+  <p id="ou1" style="font-size:1.08rem;letter-spacing:.28em;color:var(--cream);text-align:center;padding:0 2rem;opacity:0;transition:opacity .8s ease;line-height:2;">ずっと愛してるよ</p>
 </div>
 
 <!-- ═══ VIDEO ═══ -->
 <div id="video-screen">
   <video id="main-video" playsinline webkit-playsinline preload="auto" onended="goToMain()">
-    <source src="https://pub-a7496047aeb64af1bf035e96a6e179e0.r2.dev/1781077121438565.mp4" type="video/mp4">
+    <source src="https://pub-a7496047aeb64af1bf035e96a6e179e0.r2.dev/1781096705051782.mov" type="video/mp4">
   </video>
+  <div id="vid-overlay">
+    <p class="vid-msg" id="pr1">うなうなちゃん</p>
+    <p class="vid-msg" id="pr2">うなうなうなちゃん</p>
+    <p class="vid-msg" id="pr3">うなげろりん</p>
+    <p class="vid-msg" id="pr4">うなあああああああああ</p>
+  </div>
 </div>
 
 <!-- ═══ LIST ═══ -->
@@ -581,77 +539,28 @@ async function loadPhotos() {
   } catch(e) {}
 }
 
-/* ─────────── INTRO → PREROLL → VIDEO → MAIN ─────────── */
+/* ─────────── INTRO → VIDEO → MAIN ─────────── */
 function start() {
-  // Unlock audio/video for iOS — must be synchronous in user-gesture handler
-  const preAudio = document.getElementById('preroll-audio');
-  const mainVid  = document.getElementById('main-video');
-  if (preAudio) { preAudio.play().catch(()=>{}); preAudio.pause(); preAudio.currentTime = 0; }
-  mainVid.muted = true;
-  mainVid.play().then(() => { mainVid.pause(); mainVid.muted = false; mainVid.currentTime = 0; }).catch(()=>{});
+  const vid = document.getElementById('main-video');
+  vid.play().catch(() => {});
 
   document.getElementById('intro').classList.add('out');
   setTimeout(() => {
     document.getElementById('intro').style.display = 'none';
-    startPreroll();
-  }, 900);
-}
-
-function startPreroll() {
-  document.getElementById('preroll-screen').classList.add('on');
-
-  const audio = document.getElementById('preroll-audio');
-  const vid   = document.getElementById('main-video');
-
-  // Ramp up: 0 → 1 over ~12.5s
-  if (audio) {
-    audio.volume = 0;
-    audio.play().catch(() => {});
-    let vol = 0;
-    const ramp = setInterval(() => {
-      vol = Math.min(1, vol + 0.008);
-      audio.volume = vol;
-      if (vol >= 1) clearInterval(ramp);
-    }, 100);
-  }
-
-  const show = (id, t) => setTimeout(() => document.getElementById(id)?.classList.add('show'), t);
-  const hide = (id, t) => setTimeout(() => document.getElementById(id)?.classList.remove('show'), t);
-
-  // 4 messages over 11 seconds
-  show('pr1',  500); hide('pr1', 2900);
-  show('pr2', 3400); hide('pr2', 6000);
-  show('pr3', 6500); hide('pr3', 9000);
-  show('pr4', 9500); hide('pr4', 11200);
-
-  // Fade out preroll audio at 11s over 2s → no hard cut
-  setTimeout(() => {
-    if (!audio) return;
-    const fadeOut = setInterval(() => {
-      audio.volume = Math.max(0, audio.volume - 0.05);
-      if (audio.volume <= 0) { audio.pause(); clearInterval(fadeOut); }
-    }, 100);
-  }, 11000);
-
-  // Switch to video at 13s
-  setTimeout(() => {
-    document.getElementById('preroll-screen').classList.add('out');
     document.getElementById('video-screen').classList.add('on');
-    vid.volume = 1;
-    vid.muted  = false;
-    vid.play().catch(() => goToMain());
-  }, 13000);
+  }, 900);
 }
 
 function goToMain() {
   document.getElementById('video-screen').classList.add('out');
 
   const oscreen = document.getElementById('outro-screen');
-  oscreen.classList.add('on');
-  setTimeout(() => document.getElementById('ou1')?.classList.add('show'), 400);
+  oscreen.style.pointerEvents = 'auto';
+  oscreen.style.opacity = '1';
+  setTimeout(() => document.getElementById('ou1').style.opacity = '1', 400);
 
   setTimeout(() => {
-    oscreen.classList.add('out');
+    oscreen.style.opacity = '0';
     setTimeout(() => {
       oscreen.style.pointerEvents = 'none';
       document.getElementById('main').classList.add('on');
@@ -782,6 +691,17 @@ function spawnConfetti() {
   await loadPhotos();
   renderCards();
   initMosaic(photos);
+
+  // Text overlay: synced to video.currentTime (no separate audio file needed)
+  const vid = document.getElementById('main-video');
+  const tog = (id, show) => document.getElementById(id)?.classList.toggle('show', show);
+  vid.addEventListener('timeupdate', () => {
+    const t = vid.currentTime;
+    tog('pr1', t >= 0.5  && t < 3.0);
+    tog('pr2', t >= 3.5  && t < 6.2);
+    tog('pr3', t >= 6.7  && t < 9.3);
+    tog('pr4', t >= 9.8  && t < 11.5);
+  });
 })();
 </script>
 </body>

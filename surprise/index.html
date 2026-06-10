@@ -727,7 +727,7 @@ function spawnConfetti() {
   renderCards();
   initMosaic(photos);
 
-  // Text overlay: synced to video.currentTime (no separate audio file needed)
+  // Text overlay: synced to video.currentTime
   const vid = document.getElementById('main-video');
   const tog = (id, show) => document.getElementById(id)?.classList.toggle('show', show);
   vid.addEventListener('timeupdate', () => {
@@ -737,6 +737,14 @@ function spawnConfetti() {
     tog('pr3', t >= 5.3  && t < 7.3);
     tog('pr4', t >= 7.8  && t < 9.8);
     tog('pr5', t >= 10.3 && t < 12.5);
+  });
+
+  // Double-tap on video → skip to outro
+  let lastTap = 0;
+  document.getElementById('video-screen').addEventListener('touchend', () => {
+    const now = Date.now();
+    if (now - lastTap < 300) goToMain();
+    lastTap = now;
   });
 })();
 </script>

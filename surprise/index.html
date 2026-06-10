@@ -569,15 +569,21 @@ function skipToMain() {
 function start() {
   const vid = document.getElementById('main-video');
 
-  // iOS blocks vid.volume changes — use Web Audio API for volume ramp
   try {
     const ctx = new (window.AudioContext || window.webkitAudioContext)();
-    const src = ctx.createMediaElementSource(vid);
+    const src  = ctx.createMediaElementSource(vid);
     const gain = ctx.createGain();
     src.connect(gain);
     gain.connect(ctx.destination);
-    gain.gain.setValueAtTime(0.001, ctx.currentTime);
-    gain.gain.linearRampToValueAtTime(1, ctx.currentTime + 10);
+    gain.gain.value = 0.001;
+    ctx.resume();
+
+    let g = 0.001;
+    const ramp = setInterval(() => {
+      g = Math.min(1, g + 0.01);
+      gain.gain.value = g;
+      if (g >= 1) clearInterval(ramp);
+    }, 100);
   } catch(e) {
     vid.volume = 0;
     let vol = 0;

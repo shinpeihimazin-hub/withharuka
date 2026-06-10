@@ -303,6 +303,30 @@ body::before {
 }
 .preroll-msg.show { opacity: 1; }
 
+/* ─── OUTRO SCREEN ─── */
+#outro-screen {
+  position: fixed; inset: 0; z-index: 155;
+  background: var(--bg);
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1.4rem;
+  opacity: 0; pointer-events: none;
+  transition: opacity 1.5s ease;
+}
+#outro-screen.on  { opacity: 1; pointer-events: auto; }
+#outro-screen.out { opacity: 0; pointer-events: none; }
+
+.outro-msg {
+  font-size: 1.08rem;
+  letter-spacing: .28em;
+  color: var(--cream);
+  text-align: center;
+  padding: 0 2rem;
+  opacity: 0;
+  transition: opacity .8s ease;
+  line-height: 2;
+}
+.outro-msg.show { opacity: 1; }
+
 /* ─── VIDEO SCREEN ─── */
 #video-screen {
   position: fixed; inset: 0; z-index: 150;
@@ -358,13 +382,19 @@ body::before {
 
 <!-- ═══ PREROLL ═══ -->
 <div id="preroll-screen">
-  <p class="preroll-msg" id="pr1">はるかと過ごした、</p>
-  <p class="preroll-msg" id="pr2">この9ヶ月間のこと。</p>
-  <p class="preroll-msg" id="pr3">覚えてる、全部。</p>
+  <p class="preroll-msg" id="pr1">誕生日おめでとう！</p>
+  <p class="preroll-msg" id="pr2">幸せな10ヶ月をありがとう</p>
+  <p class="preroll-msg" id="pr3">とっても幸せだよ</p>
 </div>
 <audio id="preroll-audio" preload="auto">
-  <source src="preroll.mp3" type="audio/mpeg">
+  <source src="preroll.m4a" type="audio/mp4">
 </audio>
+
+<!-- ═══ OUTRO ═══ -->
+<div id="outro-screen">
+  <p class="outro-msg" id="ou1">生まれてきてくれてありがとう！</p>
+  <p class="outro-msg" id="ou2">愛してるよ！</p>
+</div>
 
 <!-- ═══ VIDEO ═══ -->
 <div id="video-screen">
@@ -568,12 +598,18 @@ function start() {
 }
 
 function startPreroll() {
-  const pscreen = document.getElementById('preroll-screen');
-  pscreen.classList.add('on');
+  document.getElementById('preroll-screen').classList.add('on');
 
   const audio = document.getElementById('preroll-audio');
-  if (audio && audio.querySelector('source[src]')?.getAttribute('src') !== 'preroll.mp3' || audio?.readyState > 0) {
+  if (audio) {
+    audio.volume = 0;
     audio.play().catch(() => {});
+    let vol = 0;
+    const ramp = setInterval(() => {
+      vol = Math.min(1, vol + 0.008);
+      audio.volume = vol;
+      if (vol >= 1) clearInterval(ramp);
+    }, 100);
   }
 
   const show = (id, t) => setTimeout(() => document.getElementById(id)?.classList.add('show'), t);
@@ -584,19 +620,27 @@ function startPreroll() {
   show('pr3', 8900);
 
   setTimeout(() => {
-    pscreen.classList.add('out');
+    document.getElementById('preroll-screen').classList.add('out');
     document.getElementById('video-screen').classList.add('on');
     document.getElementById('main-video').play().catch(() => goToMain());
   }, 13000);
 }
 
 function goToMain() {
-  const vscreen = document.getElementById('video-screen');
-  vscreen.classList.add('out');
+  document.getElementById('video-screen').classList.add('out');
+
+  const oscreen = document.getElementById('outro-screen');
+  oscreen.classList.add('on');
+  setTimeout(() => document.getElementById('ou1')?.classList.add('show'), 300);
+  setTimeout(() => document.getElementById('ou2')?.classList.add('show'), 1200);
+
   setTimeout(() => {
-    vscreen.style.pointerEvents = 'none';
-    document.getElementById('main').classList.add('on');
-  }, 900);
+    oscreen.classList.add('out');
+    setTimeout(() => {
+      oscreen.style.pointerEvents = 'none';
+      document.getElementById('main').classList.add('on');
+    }, 1500);
+  }, 3800);
 }
 
 /* ─────────── RENDER CARDS ─────────── */

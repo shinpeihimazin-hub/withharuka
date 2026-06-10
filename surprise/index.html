@@ -279,6 +279,30 @@ body::before {
 .future-body { font-size: .97rem; line-height: 2.2; color: var(--cream); opacity: .9; animation: fadeIn .6s ease; }
 .future-body p + p { margin-top: 1.2em; }
 
+/* ─── PREROLL SCREEN ─── */
+#preroll-screen {
+  position: fixed; inset: 0; z-index: 160;
+  background: var(--bg);
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transition: opacity .8s ease;
+}
+#preroll-screen.on  { opacity: 1; pointer-events: auto; }
+#preroll-screen.out { opacity: 0; pointer-events: none; }
+
+.preroll-msg {
+  position: absolute;
+  font-size: 1.08rem;
+  letter-spacing: .32em;
+  color: var(--cream);
+  text-align: center;
+  padding: 0 2rem;
+  opacity: 0;
+  transition: opacity .9s ease;
+  line-height: 2;
+}
+.preroll-msg.show { opacity: 1; }
+
 /* ─── VIDEO SCREEN ─── */
 #video-screen {
   position: fixed; inset: 0; z-index: 150;
@@ -331,6 +355,16 @@ body::before {
     <button class="intro-btn" id="intro-btn" onclick="start()">開ける</button>
   </div>
 </div>
+
+<!-- ═══ PREROLL ═══ -->
+<div id="preroll-screen">
+  <p class="preroll-msg" id="pr1">はるかと過ごした、</p>
+  <p class="preroll-msg" id="pr2">この9ヶ月間のこと。</p>
+  <p class="preroll-msg" id="pr3">覚えてる、全部。</p>
+</div>
+<audio id="preroll-audio" preload="auto">
+  <source src="preroll.mp3" type="audio/mpeg">
+</audio>
 
 <!-- ═══ VIDEO ═══ -->
 <div id="video-screen">
@@ -517,18 +551,43 @@ async function loadPhotos() {
   } catch(e) {}
 }
 
-/* ─────────── INTRO → VIDEO → MAIN ─────────── */
+/* ─────────── INTRO → PREROLL → VIDEO → MAIN ─────────── */
 function start() {
-  const vid = document.getElementById('main-video');
-  // play() must be called synchronously in the click handler for iOS
-  vid.play().catch(() => goToMain());
+  // Unlock audio/video for iOS — must be synchronous in user-gesture handler
+  const preAudio = document.getElementById('preroll-audio');
+  const mainVid  = document.getElementById('main-video');
+  if (preAudio) { preAudio.play().catch(()=>{}); preAudio.pause(); preAudio.currentTime = 0; }
+  mainVid.muted = true;
+  mainVid.play().then(() => { mainVid.pause(); mainVid.muted = false; mainVid.currentTime = 0; }).catch(()=>{});
 
-  const intro = document.getElementById('intro');
-  intro.classList.add('out');
+  document.getElementById('intro').classList.add('out');
   setTimeout(() => {
-    intro.style.display = 'none';
-    document.getElementById('video-screen').classList.add('on');
+    document.getElementById('intro').style.display = 'none';
+    startPreroll();
   }, 900);
+}
+
+function startPreroll() {
+  const pscreen = document.getElementById('preroll-screen');
+  pscreen.classList.add('on');
+
+  const audio = document.getElementById('preroll-audio');
+  if (audio && audio.querySelector('source[src]')?.getAttribute('src') !== 'preroll.mp3' || audio?.readyState > 0) {
+    audio.play().catch(() => {});
+  }
+
+  const show = (id, t) => setTimeout(() => document.getElementById(id)?.classList.add('show'), t);
+  const hide = (id, t) => setTimeout(() => document.getElementById(id)?.classList.remove('show'), t);
+
+  show('pr1',  500); hide('pr1', 3800);
+  show('pr2', 4400); hide('pr2', 8300);
+  show('pr3', 8900);
+
+  setTimeout(() => {
+    pscreen.classList.add('out');
+    document.getElementById('video-screen').classList.add('on');
+    document.getElementById('main-video').play().catch(() => goToMain());
+  }, 13000);
 }
 
 function goToMain() {

@@ -361,7 +361,7 @@ body::before {
 
 <!-- ═══ VIDEO ═══ -->
 <div id="video-screen">
-  <video id="main-video" playsinline webkit-playsinline preload="auto" onended="goToMain()">
+  <video id="main-video" playsinline webkit-playsinline preload="auto" onended="goToMain()" onerror="goToMain()">
     <source src="https://pub-a7496047aeb64af1bf035e96a6e179e0.r2.dev/1781096705051782.mov" type="video/quicktime">
     <source src="https://pub-a7496047aeb64af1bf035e96a6e179e0.r2.dev/1781096705051782.mov">
   </video>
@@ -551,7 +551,7 @@ function initMosaic(photoData) {
 /* ─────────── PHOTOS ─────────── */
 async function loadPhotos() {
   try {
-    const r = await fetch('photos.json?v=' + Date.now());
+    const r = await fetch('photos.json?v=' + Date.now(), {cache: 'no-store'});
     if (r.ok) photos = await r.json();
   } catch(e) {}
 }
@@ -577,7 +577,10 @@ function start() {
   }, 900);
 }
 
+let _goingToMain = false;
 function goToMain() {
+  if (_goingToMain) return;
+  _goingToMain = true;
   document.getElementById('video-screen').classList.add('out');
 
   const oscreen = document.getElementById('outro-screen');

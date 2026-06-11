@@ -1,7 +1,11 @@
-/index.html
+/surprise/index.html
   Cache-Control: no-cache, no-store, must-revalidate
   Pragma: no-cache
 
-/photos.json
+/surprise/edit.html
+  Cache-Control: no-cache, no-store, must-revalidate
+  Pragma: no-cache
+
+/surprise/photos.json
   Cache-Control: no-cache, no-store, must-revalidate
   Pragma: no-cache

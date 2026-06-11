@@ -551,7 +551,7 @@ function initMosaic(photoData) {
 /* ─────────── PHOTOS ─────────── */
 async function loadPhotos() {
   try {
-    const r = await fetch('photos.json');
+    const r = await fetch('photos.json?v=' + Date.now());
     if (r.ok) photos = await r.json();
   } catch(e) {}
 }

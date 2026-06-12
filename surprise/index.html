@@ -632,8 +632,7 @@ function renderCards() {
     <div class="env-seal">✦</div>
     <div class="env-body">
       <div class="env-month">これからへ</div>
-      <div class="env-title">最後の封筒</div>
-      <div class="env-sub">これからの手紙</div>
+      <div class="env-title">これからの手紙</div>
     </div>
     <div class="env-foot">タップして開ける →</div>
   `;
@@ -675,7 +674,7 @@ function openFuture() {
   document.getElementById('det-label').textContent = 'これからの手紙';
   document.getElementById('det-body').innerHTML = `
     <div class="det-month">これからへ</div>
-    <div class="det-title">最後の封筒</div>
+    <div class="det-title">これからの手紙</div>
     <div class="future-body">${FUTURE_LETTER}</div>
   `;
   showDetail();

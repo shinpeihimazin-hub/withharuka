@@ -215,11 +215,14 @@ body::before {
 /* ─── DETAIL OVERLAY ─── */
 #detail {
   position: fixed; inset: 0; background: var(--bg); z-index: 100;
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
+  overflow: hidden;
   transform: translateY(100%);
   transition: transform .42s cubic-bezier(.22,1,.36,1);
 }
 #detail.open { transform: translateY(0); }
+#det-scroll {
+  height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+}
 
 .det-hdr {
   position: sticky; top: 0;
@@ -385,12 +388,14 @@ body::before {
 
 <!-- ═══ DETAIL ═══ -->
 <div id="detail">
-  <div class="det-hdr">
-    <button class="det-back" onclick="closeDetail()">← 戻る</button>
-    <span class="det-label" id="det-label"></span>
-    <span style="min-width:50px"></span>
+  <div id="det-scroll">
+    <div class="det-hdr">
+      <button class="det-back" onclick="closeDetail()">← 戻る</button>
+      <span class="det-label" id="det-label"></span>
+      <span style="min-width:50px"></span>
+    </div>
+    <div class="det-body" id="det-body"></div>
   </div>
-  <div class="det-body" id="det-body"></div>
 </div>
 
 <script>
@@ -678,7 +683,7 @@ function openFuture() {
 /* ─────────── DETAIL HELPERS ─────────── */
 function showDetail() {
   const det = document.getElementById('detail');
-  det.scrollTop = 0;
+  document.getElementById('det-scroll').scrollTop = 0;
   requestAnimationFrame(() => det.classList.add('open'));
 }
 function closeDetail() {
@@ -688,9 +693,10 @@ function closeDetail() {
 /* swipe down to close */
 let ty0 = 0;
 const det = document.getElementById('detail');
+const detScroll = document.getElementById('det-scroll');
 det.addEventListener('touchstart', e => { ty0 = e.touches[0].clientY; }, { passive: true });
 det.addEventListener('touchend',   e => {
-  if (e.changedTouches[0].clientY - ty0 > 80 && det.scrollTop < 10) closeDetail();
+  if (e.changedTouches[0].clientY - ty0 > 80 && detScroll.scrollTop < 10) closeDetail();
 }, { passive: true });
 
 /* ─────────── CONFETTI ─────────── */

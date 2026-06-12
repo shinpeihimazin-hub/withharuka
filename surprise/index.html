@@ -591,6 +591,7 @@ let _goingToMain = false;
 function goToMain() {
   if (_goingToMain) return;
   _goingToMain = true;
+  document.getElementById('main-video').pause();
   document.getElementById('video-screen').classList.add('out');
 
   const oscreen = document.getElementById('outro-screen');
@@ -674,7 +675,6 @@ function openMonth(id) {
 
 /* ─────────── OPEN FUTURE ─────────── */
 function openFuture() {
-  spawnConfetti();
   document.getElementById('det-label').textContent = 'これからの手紙';
   document.getElementById('det-body').innerHTML = `
     <div class="det-month">これからへ</div>
@@ -744,11 +744,17 @@ function spawnConfetti() {
     tog('pr6', t >= 11.2 && t < 13.0);
   });
 
-  // Double-tap on video → skip to outro
+  // Double-tap on video → skip directly to main (no outro)
   let lastTap = 0;
   document.getElementById('video-screen').addEventListener('touchend', () => {
     const now = Date.now();
-    if (now - lastTap < 300) goToMain();
+    if (now - lastTap < 300) {
+      if (_goingToMain) return;
+      _goingToMain = true;
+      document.getElementById('main-video').pause();
+      document.getElementById('video-screen').classList.add('out');
+      setTimeout(() => document.getElementById('main').classList.add('on'), 900);
+    }
     lastTap = now;
   });
 })();

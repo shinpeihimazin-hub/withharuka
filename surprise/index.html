@@ -744,12 +744,12 @@ function spawnConfetti() {
   let lastTap = 0;
   document.getElementById('video-screen').addEventListener('touchend', () => {
     const now = Date.now();
-    if (now - lastTap < 300) {
+    if (now - lastTap < 400) {
       if (_goingToMain) return;
       _goingToMain = true;
       document.getElementById('main-video').pause();
+      document.getElementById('main').classList.add('on');
       document.getElementById('video-screen').classList.add('out');
-      setTimeout(() => document.getElementById('main').classList.add('on'), 900);
     }
     lastTap = now;
   });

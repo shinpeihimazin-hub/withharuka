@@ -221,7 +221,7 @@ body::before {
 }
 #detail.open { transform: translateY(0); }
 #det-scroll {
-  height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch;
+  height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
 }
 
 .det-hdr {
@@ -742,14 +742,16 @@ function spawnConfetti() {
 
   // Double-tap on video → skip directly to main (no outro)
   let lastTap = 0;
-  document.getElementById('video-screen').addEventListener('touchend', () => {
+  document.getElementById('video-screen').addEventListener('touchend', (e) => {
     const now = Date.now();
     if (now - lastTap < 400) {
       if (_goingToMain) return;
       _goingToMain = true;
+      e.preventDefault();
       document.getElementById('main-video').pause();
+      window.scrollTo(0, 0);
       document.getElementById('main').classList.add('on');
-      document.getElementById('video-screen').classList.add('out');
+      setTimeout(() => document.getElementById('video-screen').classList.add('out'), 50);
     }
     lastTap = now;
   });

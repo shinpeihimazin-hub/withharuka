@@ -260,16 +260,18 @@ body::before {
 .gallery {
   margin: 0 -1.25rem 2.5rem; overflow-x: auto; -webkit-overflow-scrolling: touch;
   scrollbar-width: none; padding: 1rem 0 1.5rem;
+  scroll-snap-type: x mandatory;
 }
 .gallery::-webkit-scrollbar { display: none; }
 .gallery-row {
-  display: flex; gap: 1.5rem; padding: 0 1.5rem; align-items: center;
+  display: flex; gap: 1.5rem; padding: 0 calc(50% - 108px); align-items: center;
 }
 .polaroid {
   flex-shrink: 0;
   background: #fff; padding: 8px 8px 28px;
   box-shadow: 0 6px 24px rgba(0,0,0,.5);
   animation: polaroidIn .5s ease backwards;
+  scroll-snap-align: center;
 }
 .polaroid:nth-child(odd)  { transform: rotate(-2.5deg); }
 .polaroid:nth-child(even) { transform: rotate(2deg); }

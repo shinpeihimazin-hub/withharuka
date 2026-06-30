@@ -752,14 +752,13 @@ function spawnConfetti() {
     if (now - lastTap < 400) {
       if (_goingToMain) return;
       _goingToMain = true;
-      e.preventDefault();
       document.getElementById('main-video').pause();
+      document.getElementById('video-screen').classList.add('out');
       window.scrollTo(0, 0);
       document.getElementById('main').classList.add('on');
-      setTimeout(() => document.getElementById('video-screen').classList.add('out'), 50);
     }
     lastTap = now;
-  });
+  }, { passive: true });
 })();
 </script>
 </body>

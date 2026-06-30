@@ -228,7 +228,6 @@ body::before {
   height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
   overscroll-behavior: contain;
 }
-body.detail-open { overflow: hidden; }
 
 .det-hdr {
   position: sticky; top: 0;
@@ -687,15 +686,22 @@ function openFuture() {
 }
 
 /* ─────────── DETAIL HELPERS ─────────── */
+let _detailScrollY = 0;
 function showDetail() {
+  _detailScrollY = window.scrollY;
+  document.body.style.position = 'fixed';
+  document.body.style.top = `-${_detailScrollY}px`;
+  document.body.style.width = '100%';
   const det = document.getElementById('detail');
   document.getElementById('det-scroll').scrollTop = 0;
-  document.body.classList.add('detail-open');
   requestAnimationFrame(() => det.classList.add('open'));
 }
 function closeDetail() {
   document.getElementById('detail').classList.remove('open');
-  document.body.classList.remove('detail-open');
+  document.body.style.position = '';
+  document.body.style.top = '';
+  document.body.style.width = '';
+  window.scrollTo(0, _detailScrollY);
 }
 
 /* swipe down to close */

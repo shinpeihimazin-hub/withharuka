@@ -587,8 +587,9 @@ let _goingToMain = false;
 function goToMain() {
   if (_goingToMain) return;
   _goingToMain = true;
+  const vidScreen = document.getElementById('video-screen');
   document.getElementById('main-video').pause();
-  document.getElementById('video-screen').classList.add('out');
+  vidScreen.classList.add('out');
 
   const oscreen = document.getElementById('outro-screen');
   oscreen.style.pointerEvents = 'auto';
@@ -598,7 +599,8 @@ function goToMain() {
   setTimeout(() => {
     oscreen.style.opacity = '0';
     setTimeout(() => {
-      oscreen.style.pointerEvents = 'none';
+      oscreen.style.display = 'none';
+      vidScreen.style.display = 'none';
       document.getElementById('main').classList.add('on');
     }, 1500);
   }, 3500);
@@ -747,14 +749,15 @@ function spawnConfetti() {
     if (now - lastTap < 400) {
       if (_goingToMain) return;
       _goingToMain = true;
-      e.preventDefault();
       document.getElementById('main-video').pause();
       window.scrollTo(0, 0);
       document.getElementById('main').classList.add('on');
-      setTimeout(() => document.getElementById('video-screen').classList.add('out'), 50);
+      const vs = document.getElementById('video-screen');
+      vs.classList.add('out');
+      setTimeout(() => { vs.style.display = 'none'; }, 800);
     }
     lastTap = now;
-  });
+  }, { passive: true });
 })();
 </script>
 </body>

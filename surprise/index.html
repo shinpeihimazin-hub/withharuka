@@ -754,7 +754,10 @@ function spawnConfetti() {
       document.getElementById('main').classList.add('on');
       const vs = document.getElementById('video-screen');
       vs.classList.add('out');
-      setTimeout(() => { vs.style.display = 'none'; }, 800);
+      setTimeout(() => {
+        vs.style.display = 'none';
+        document.getElementById('outro-screen').style.display = 'none';
+      }, 800);
     }
     lastTap = now;
   }, { passive: true });

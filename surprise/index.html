@@ -21,12 +21,8 @@
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
 }
-html {
+html, body {
   height: 100%;
-  overscroll-behavior: none;
-}
-body {
-  min-height: 100%;
   font-family: 'Hiragino Mincho ProN','ヒラギノ明朝 ProN','YuMincho','游明朝',Georgia,serif;
   background: var(--bg);
   color: var(--text-c);
@@ -219,13 +215,13 @@ body::before {
 /* ─── DETAIL OVERLAY ─── */
 #detail {
   position: fixed; inset: 0; background: var(--bg); z-index: 100;
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-  overscroll-behavior: contain;
+  overflow: hidden;
   transform: translateY(100%);
   transition: transform .42s cubic-bezier(.22,1,.36,1);
 }
 #detail.open { transform: translateY(0); }
 #det-scroll {
+  height: 100%; overflow-y: auto; -webkit-overflow-scrolling: touch; touch-action: pan-y;
 }
 
 .det-hdr {
@@ -687,13 +683,11 @@ function openFuture() {
 /* ─────────── DETAIL HELPERS ─────────── */
 function showDetail() {
   const det = document.getElementById('detail');
-  det.scrollTop = 0;
-  document.documentElement.style.overflow = 'hidden';
+  document.getElementById('det-scroll').scrollTop = 0;
   requestAnimationFrame(() => det.classList.add('open'));
 }
 function closeDetail() {
   document.getElementById('detail').classList.remove('open');
-  document.documentElement.style.overflow = '';
 }
 
 /* swipe down to close */
@@ -702,7 +696,7 @@ const det = document.getElementById('detail');
 const detScroll = document.getElementById('det-scroll');
 det.addEventListener('touchstart', e => { ty0 = e.touches[0].clientY; }, { passive: true });
 det.addEventListener('touchend',   e => {
-  if (e.changedTouches[0].clientY - ty0 > 80 && det.scrollTop < 10) closeDetail();
+  if (e.changedTouches[0].clientY - ty0 > 80 && detScroll.scrollTop < 10) closeDetail();
 }, { passive: true });
 
 /* ─────────── CONFETTI ─────────── */
@@ -753,13 +747,14 @@ function spawnConfetti() {
     if (now - lastTap < 400) {
       if (_goingToMain) return;
       _goingToMain = true;
+      e.preventDefault();
       document.getElementById('main-video').pause();
-      document.getElementById('video-screen').classList.add('out');
       window.scrollTo(0, 0);
       document.getElementById('main').classList.add('on');
+      setTimeout(() => document.getElementById('video-screen').classList.add('out'), 50);
     }
     lastTap = now;
-  }, { passive: true });
+  });
 })();
 </script>
 </body>

@@ -32,30 +32,30 @@ body { font-size: 13px; line-height: 1.4; }
 .tab.on { color: var(--blue); }
 .tab-ico { font-size: 19px; line-height: 1; }
 
-/* ===== MAIN CONTENT (隙間ゼロの新レイアウト) ===== */
+/* ===== MAIN CONTENT & PINTEREST MASONRY (隙間ゼロ！) ===== */
 .main { padding-top: calc(var(--hdr) + var(--sat)); padding-bottom: calc(var(--tab) + var(--sab) + 16px); min-height: 100vh; }
-.panel { display: none; padding: 12px; }
+.panel { display: none; padding: 10px; }
 .panel.on { display: block; }
 
-/* カテゴリ見出し */
-.cat-section { margin-bottom: 20px; }
-.cat-hd { font-size: 14px; font-weight: 800; color: #444; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; border-bottom: 2px solid var(--border); padding-bottom: 4px; }
-.cat-dot { color: var(--blue); font-size: 10px; }
+/* 2列を柔軟に並べるコンテナ */
+.masonry-container { display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; }
+.masonry-col { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; }
 
-/* アイテムを2列に詰めるグリッド */
-.item-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
-
-/* 個別のアイテムカード */
-.g-card { background: var(--card); border-radius: 10px; padding: 10px; border: 1px solid var(--border); box-shadow: 0 2px 4px rgba(0,0,0,.02); display: flex; align-items: flex-start; gap: 8px; }
-.g-chk { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; border: 2px solid #CCC; border-radius: 50%; cursor: pointer; transition: background .1s; }
-.g-chk:active { background: #DDD; }
-.g-txt { font-size: 13px; font-weight: 700; color: #222; flex: 1; word-break: break-all; cursor: pointer; line-height: 1.3; }
-.g-sub { font-size: 10px; color: var(--text-hint); font-weight: 600; margin-top: 4px; }
-.g-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 5px; }
-.g-tag { font-size: 9px; background: var(--blue-light); color: var(--blue-mid); font-weight: 700; padding: 2px 6px; border-radius: 4px; }
+/* ご要望の「白い箱」デザイン */
+.g-card { background: var(--card); border-radius: 12px; padding: 10px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.g-hd { font-size: 13px; font-weight: 800; color: #444; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #F0EDE8; padding-bottom: 6px; }
+.g-dot { color: var(--blue); font-size: 10px; }
+.g-item { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 12px; }
+.g-item:last-child { margin-bottom: 2px; }
+.g-chk { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; border: 1.5px solid #CCC; border-radius: 50%; cursor: pointer; }
+.g-chk:active { background: #E4E0DA; }
+.g-txt { font-size: 13px; font-weight: 700; color: #222; flex: 1; cursor: pointer; word-break: break-all; line-height: 1.35; }
+.g-sub { font-size: 10px; color: var(--text-hint); font-weight: 600; margin-top: 3px; }
+.g-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.g-tag { font-size: 9px; background: var(--bg); color: var(--text-sub); padding: 2px 6px; border-radius: 4px; }
 
 /* ===== FILTER BAR ===== */
-.filter-bar { position: sticky; top: calc(var(--hdr) + var(--sat)); z-index: 80; background: var(--bg); margin: -12px -12px 12px; padding: 8px 12px; border-bottom: 1px solid var(--border); }
+.filter-bar { position: sticky; top: calc(var(--hdr) + var(--sat)); z-index: 80; background: var(--bg); margin: -10px -10px 10px; padding: 6px 10px; border-bottom: 1px solid var(--border); }
 .filter-row { display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 .filter-row::-webkit-scrollbar { display: none; }
 .chip { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: #fff; color: var(--text-sub); font-size: 11px; font-weight: 600; cursor: pointer; }
@@ -79,7 +79,7 @@ body { font-size: 13px; line-height: 1.4; }
 .fab:active { transform: scale(.95); }
 .fab.hide { display: none; }
 
-/* ===== COMPACT MODAL FORM ===== */
+/* ===== COMPACT MODAL FORM (ダイエット版) ===== */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; align-items: flex-end; }
 .overlay.on { display: flex; }
 .sheet { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-height: 88vh; overflow-y: auto; padding: 0 16px calc(16px + var(--sab)); }
@@ -90,9 +90,10 @@ body { font-size: 13px; line-height: 1.4; }
 .fg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
 .fg-header label { font-size: 11px; font-weight: 800; color: var(--text-sub); }
 .lnk-edit { font-size: 11px; font-weight: 700; color: var(--blue); background: none; border: none; padding: 2px 4px; }
+
 .fi, .fta { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: #FAFAF8; outline: none; font-family: inherit; }
 .fi:focus, .fta:focus { border-color: var(--blue); background: #fff; }
-.fta { resize: vertical; min-height: 48px; }
+.fta { resize: vertical; min-height: 48px; } 
 
 .btn-grid { display: flex; flex-wrap: wrap; gap: 6px; }
 .cat-btn { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 700; background: #fff; color: #555; cursor: pointer; }
@@ -147,7 +148,9 @@ body { font-size: 13px; line-height: 1.4; }
 <div id="toast" class="toast"></div>
 
 <script>
+// ご自身のApps Script URL
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBwT7jAEcrH9R9WrWjlzut-vBHTCxWIRG3bCmiUVWAz2ojJgjBFDnRp4l4G13qu2_4rQ/exec';
+
 const TABS = ['wants','shopping','talking','todo','restaurant','archive'];
 const LABELS = {wants:'やりたいこと', shopping:'買い物', talking:'話すこと', todo:'Todo', restaurant:'ご飯屋'};
 let cur = 'wants';
@@ -174,7 +177,7 @@ function pTags(s){ return String(s||'').split(',').map(x=>x.trim()).filter(Boole
 function d2i(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return d.toISOString().split('T')[0];}catch(e){return'';} }
 function fDate(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return `${d.getMonth()+1}/${d.getDate()}`;}catch(e){return'';} }
 
-// ===== 隙間ゼロの新レイアウト描画 =====
+// ===== 画面描画 (JS制御による完璧なテトリス配置) =====
 function rpTab(tab) {
   if(tab === 'archive') return rpA();
   
@@ -212,18 +215,21 @@ function rpTab(tab) {
     map[c].push(i);
   });
 
-  // 横幅いっぱいの見出し ＋ 2列に敷き詰めるアイテムカード
+  // 短い列を自動判定して箱を埋めていくロジック
+  let colHeights = [0, 0];
+  let colHtml = ['', ''];
+
   Object.keys(map).sort((a,b)=>a==='未分類'?1:b==='未分類'?-1:a.localeCompare(b)).forEach(c => {
-    h += `<div class="cat-section">
-            <div class="cat-hd"><span class="cat-dot">●</span>${esc(c)}</div>
-            <div class="item-grid">`;
-    map[c].forEach(i => {
+    let catItems = map[c];
+    let card = `<div class="g-card"><div class="g-hd"><span class="g-dot">●</span>${esc(c)}</div>`;
+    
+    catItems.forEach(i => {
       const tags = pTags(i.Tags).map(t=>`<span class="g-tag">${esc(t)}</span>`).join('');
       let sub = '';
       if(i.Memo) sub += `<div class="g-sub">📝 ${esc(i.Memo)}</div>`;
       if(i.DeadlineDate || i.Deadline) sub += `<div class="g-sub" style="color:var(--red)">🗓 ${fDate(i.DeadlineDate||i.Deadline)}まで</div>`;
       
-      h += `<div class="g-card">
+      card += `<div class="g-item">
               <div class="g-chk" onclick="markDone('${tab}','${i.ID}')"></div>
               <div class="g-txt" onclick="openForm('${i.ID}')">${esc(i.Title||i.Name)}
                 <div class="g-tags">${tags}</div>
@@ -231,8 +237,16 @@ function rpTab(tab) {
               </div>
             </div>`;
     });
-    h += `</div></div>`;
+    card += `</div>`;
+
+    // 短い方の列（右か左か）を判定してカードを入れる
+    let targetCol = colHeights[0] <= colHeights[1] ? 0 : 1;
+    colHtml[targetCol] += card;
+    // アイテム数から高さを概算して追加（箱が大きく伸びてもデッドスペースを防ぐ）
+    colHeights[targetCol] += 40 + (catItems.length * 45); 
   });
+
+  h += `<div class="masonry-container"><div class="masonry-col">${colHtml[0]}</div><div class="masonry-col">${colHtml[1]}</div></div>`;
   document.getElementById('p-'+tab).innerHTML = h;
 }
 
@@ -262,6 +276,7 @@ function rpA() {
   document.getElementById('p-archive').innerHTML = h || '<div class="empty">完了したアイテムがありません</div>';
 }
 
+// ===== 爆速状態変更 (Optimistic UI) =====
 function markDone(tab, id) {
   const item = store[id]; if(!item) return;
   if(tab==='wants') item.Done = 'TRUE';
@@ -274,7 +289,7 @@ function markDone(tab, id) {
   toast('✓ 完了しました');
   
   const apiMap = {wants:'markWantDone', shopping:'markBought', talking:'markTalked', todo:'markTodoDone', restaurant:'markVisited'};
-  srv(apiMap[tab], {id}).catch(() => toast('通信エラー'));
+  srv(apiMap[tab], {id}).catch(() => toast('通信エラー: 保存されませんでした'));
 }
 
 function markUndone(tab, id) {
@@ -292,6 +307,7 @@ function markUndone(tab, id) {
   srv(apiMap[tab], {id}).catch(() => toast('通信エラー'));
 }
 
+// ===== コンパクトフォーム UI =====
 function openForm(id) {
   const item = id ? store[id] : {};
   let tab = cur === 'archive' ? 'wants' : cur;
@@ -327,7 +343,7 @@ function openForm(id) {
   h += `</div>`;
 
   h += `<div class="fg">
-          <div class="fg-header"><label>カテゴリ</label><button class="lnk-edit" onclick="openMgr('${cKey}','カテゴリ')">✏ 編集</button></div>
+          <div class="fg-header"><label>カテゴリ（列分け）</label><button class="lnk-edit" onclick="openMgr('${cKey}','カテゴリ')">✏ 編集</button></div>
           <div class="btn-grid" id="f-cats">${cHtml}</div>
         </div>`;
   
@@ -355,6 +371,7 @@ function selCat(btn) {
 }
 function closeMod(){ document.getElementById('ov').classList.remove('on'); }
 
+// ===== 爆速送信 =====
 function submitForm() {
   const id = document.getElementById('f-id').value;
   const tab = document.getElementById('f-tab').value;
@@ -418,6 +435,7 @@ function submitForm() {
   srv(apiMap[tab], payload).catch(() => toast('裏側への保存に失敗しました'));
 }
 
+// ===== 管理UI =====
 let editKey = '';
 function openMgr(key, typeName) {
   editKey = key;
@@ -479,7 +497,7 @@ function loadData() {
     
     data.wants = w||[]; data.shopping = s||[]; data.talking = ta||[]; data.todo = td||[]; data.restaurant = r||[];
     
-    // 古いデータでIDが空っぽのものに仮IDを振る保護機能
+    // 【バグ修正】古いデータ（町田など）に自動でIDを振って完了できるようにする保護機能
     [data.wants, data.shopping, data.talking, data.todo, data.restaurant].forEach(arr => {
       arr.forEach(i => {
         if (!i.ID) i.ID = 'legacy-' + Math.random().toString(36).substr(2, 9);

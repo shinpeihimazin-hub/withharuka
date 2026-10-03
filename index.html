@@ -144,7 +144,7 @@ body { font-size: 14px; line-height: 1.5; }
 <div id="toast" class="toast"></div>
 
 <script>
-// ★★★ Apps ScriptのURL（修正済！） ★★★
+// ★★★ Apps ScriptのURL ★★★
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBwT7jAEcrH9R9WrWjlzut-vBHTCxWIRG3bCmiUVWAz2ojJgjBFDnRp4l4G13qu2_4rQ/exec';
 
 const TABS = ['wants','shopping','talking','todo','restaurant','archive'];
@@ -458,7 +458,8 @@ function loadData() {
     rpTab(cur);
   }).catch(e => {
     console.error(e);
-    toast('データの読み込みに失敗しました');
+    toast('通信エラー: アクセス権限等を確認してください');
+    document.querySelectorAll('.panel').forEach(p => p.innerHTML = '<div class="empty">データの読み込みに失敗しました</div>');
   });
 }
 

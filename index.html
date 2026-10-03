@@ -14,101 +14,106 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root {
   --blue: #4A8FD4; --blue-light: #EBF3FF; --blue-mid: #2D6FB0;
-  --bg: #F2F1EE; --card: #FFFFFF; --border: #E4E0DA;
-  --text: #1A1A1A; --text-sub: #888; --text-hint: #BBB;
-  --green: #3A9E42; --green-light: #E8F5E9; --red: #CC3333;
+  --bg: #F5F4F0; --card: #FFFFFF; --border: #E0DDD6;
+  --text: #222222; --text-sub: #777777; --text-hint: #AAAAAA;
+  --red: #D34545;
   --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px);
-  --hdr: 48px; --tab: 50px;
+  --hdr: 44px; --tab: 48px;
 }
 html, body { height: 100%; font-family: -apple-system, 'Hiragino Sans', sans-serif; background: var(--bg); color: var(--text); overscroll-behavior: none; -webkit-overflow-scrolling: touch; }
-body { font-size: 14px; line-height: 1.5; }
+body { font-size: 13px; line-height: 1.4; }
 
 /* ===== HEADER & TABS ===== */
 .hdr { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding-top: var(--sat); background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 14px; height: calc(var(--hdr) + var(--sat)); }
-.hdr-title { font-size: 16px; font-weight: 800; flex: 1; }
-.hdr-count { font-size: 12px; font-weight: 700; color: var(--text-sub); background: var(--bg); padding: 3px 10px; border-radius: 20px; }
+.hdr-title { font-size: 15px; font-weight: 800; flex: 1; }
+.hdr-count { font-size: 11px; font-weight: 700; color: var(--text-sub); background: var(--bg); padding: 3px 8px; border-radius: 12px; }
 .tabs { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: #fff; border-top: 1px solid var(--border); display: flex; padding-bottom: var(--sab); }
-.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: none; border: none; cursor: pointer; color: var(--text-hint); font-size: 10px; font-weight: 700; height: var(--tab); padding: 0 2px; }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: none; border: none; cursor: pointer; color: var(--text-hint); font-size: 9px; font-weight: 700; height: var(--tab); }
 .tab.on { color: var(--blue); }
-.tab-ico { font-size: 21px; line-height: 1; }
+.tab-ico { font-size: 19px; line-height: 1; }
 
-/* ===== MAIN CONTENT & MASONRY ===== */
-.main { padding-top: calc(var(--hdr) + var(--sat)); padding-bottom: calc(var(--tab) + var(--sab) + 14px); min-height: 100vh; }
-.panel { display: none; padding: 10px 12px; }
+/* ===== MAIN CONTENT & KANBAN GRID (左寄り問題解消!) ===== */
+.main { padding-top: calc(var(--hdr) + var(--sat)); padding-bottom: calc(var(--tab) + var(--sab) + 16px); min-height: 100vh; }
+.panel { display: none; padding: 10px; }
 .panel.on { display: block; }
-.masonry { column-count: 2; column-gap: 10px; margin-top: 10px; }
-.g-card { break-inside: avoid; background: var(--card); border-radius: 12px; padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
-.g-hd { font-size: 13px; font-weight: 800; color: #555; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #F0EDE8; padding-bottom: 6px; }
-.g-dot { color: var(--blue); font-size: 10px; }
-.g-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
+
+/* 完璧に2列に並ぶGridレイアウト */
+.kanban-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; align-items: start; margin-top: 8px; }
+
+.g-card { background: var(--card); border-radius: 10px; padding: 8px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.04); }
+.g-hd { font-size: 12px; font-weight: 800; color: #555; margin-bottom: 8px; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid #F0EDE8; padding-bottom: 4px; }
+.g-dot { color: var(--blue); font-size: 9px; }
+.g-item { display: flex; align-items: flex-start; gap: 6px; margin-bottom: 10px; }
 .g-item:last-child { margin-bottom: 2px; }
-.g-chk { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; border: 1.5px solid #CCC; border-radius: 50%; cursor: pointer; transition: background .1s; }
+.g-chk { width: 18px; height: 18px; flex-shrink: 0; margin-top: 1px; border: 1.5px solid #CCC; border-radius: 50%; cursor: pointer; }
 .g-chk:active { background: #E4E0DA; }
-.g-txt { font-size: 14px; font-weight: 700; color: #333; line-height: 1.35; flex: 1; cursor: pointer; }
-.g-sub { font-size: 11px; color: var(--text-hint); font-weight: 600; margin-top: 3px; }
+.g-txt { font-size: 13px; font-weight: 700; color: #222; flex: 1; cursor: pointer; word-break: break-all; }
+.g-sub { font-size: 10px; color: var(--text-hint); font-weight: 600; margin-top: 2px; }
 .g-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
-.g-tag { font-size: 10px; background: var(--bg); color: var(--text-sub); padding: 2px 6px; border-radius: 4px; }
+.g-tag { font-size: 9px; background: var(--bg); color: var(--text-sub); padding: 2px 6px; border-radius: 4px; }
 
 /* ===== FILTER BAR ===== */
-.filter-bar { position: sticky; top: calc(var(--hdr) + var(--sat)); z-index: 80; background: var(--bg); margin: -10px -12px 10px; padding: 8px 12px 6px; border-bottom: 1px solid var(--border); }
-.filter-row { display: flex; align-items: center; gap: 7px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+.filter-bar { position: sticky; top: calc(var(--hdr) + var(--sat)); z-index: 80; background: var(--bg); margin: -10px -10px 10px; padding: 6px 10px; border-bottom: 1px solid var(--border); }
+.filter-row { display: flex; align-items: center; gap: 6px; overflow-x: auto; scrollbar-width: none; }
 .filter-row::-webkit-scrollbar { display: none; }
-.chip { flex-shrink: 0; padding: 6px 14px; border-radius: 30px; border: 1.5px solid var(--border); background: #fff; color: var(--text-sub); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.chip { flex-shrink: 0; padding: 5px 12px; border-radius: 20px; border: 1px solid var(--border); background: #fff; color: var(--text-sub); font-size: 11px; font-weight: 600; cursor: pointer; }
 .chip.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue-mid); font-weight: 800; }
-.filter-lbl { flex-shrink: 0; font-size: 11px; font-weight: 800; color: var(--text-hint); }
+.filter-lbl { flex-shrink: 0; font-size: 10px; font-weight: 800; color: var(--text-hint); }
 
 /* ===== ARCHIVE CARD ===== */
-.card { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; opacity: .7; }
-.card-title { font-size: 14px; font-weight: 700; text-decoration: line-through; color: var(--text-sub); margin-bottom: 6px;}
-.card-actions { display: flex; gap: 6px; margin-top: 8px; }
-.btn-undo { flex: 1; background: #F0EDE8; border: none; border-radius: 8px; padding: 8px; font-size: 12px; font-weight: 700; color: #555; }
-.sec-hd { font-size: 13px; font-weight: 800; color: var(--text-hint); margin: 16px 0 8px; }
+.card { background: var(--card); border-radius: 10px; padding: 10px; margin-bottom: 8px; opacity: .8; border: 1px solid var(--border); }
+.card-title { font-size: 13px; font-weight: 700; text-decoration: line-through; color: var(--text-sub); margin-bottom: 6px;}
+.btn-undo { width: 100%; background: #F0EDE8; border: none; border-radius: 6px; padding: 8px; font-size: 11px; font-weight: 700; color: #555; cursor: pointer; }
+.sec-hd { font-size: 12px; font-weight: 800; color: var(--text-hint); margin: 16px 0 8px; }
 
 /* ===== EMPTY & LOADING ===== */
-.empty { display: flex; flex-direction: column; align-items: center; padding: 60px 0; color: var(--text-hint); text-align: center; gap: 10px; }
-.empty-ico { font-size: 40px; }
-.spin { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .75s linear infinite; margin: 40px auto; }
+.empty { display: flex; flex-direction: column; align-items: center; padding: 50px 0; color: var(--text-hint); text-align: center; gap: 8px; }
+.empty-ico { font-size: 32px; }
+.spin { width: 22px; height: 22px; border: 2.5px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .7s linear infinite; margin: 40px auto; }
 @keyframes spin { to { transform: rotate(360deg); } }
 
 /* ===== FAB ===== */
-.fab { position: fixed; right: 20px; bottom: calc(var(--tab) + var(--sab) + 14px); width: 52px; height: 52px; border-radius: 50%; background: var(--blue); color: #fff; border: none; font-size: 26px; box-shadow: 0 4px 16px rgba(74,143,212,.5); z-index: 200; cursor: pointer; transition: transform .1s; }
-.fab:active { transform: scale(.9); }
+.fab { position: fixed; right: 16px; bottom: calc(var(--tab) + var(--sab) + 16px); width: 48px; height: 48px; border-radius: 50%; background: var(--blue); color: #fff; border: none; font-size: 24px; box-shadow: 0 3px 12px rgba(74,143,212,.4); z-index: 200; cursor: pointer; }
+.fab:active { transform: scale(.95); }
 .fab.hide { display: none; }
 
-/* ===== MODAL & FORM ===== */
+/* ===== COMPACT MODAL FORM (ダイエット版) ===== */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; align-items: flex-end; }
 .overlay.on { display: flex; }
-.sheet { background: #fff; border-radius: 26px 26px 0 0; width: 100%; max-height: 94vh; overflow-y: auto; padding: 0 16px calc(24px + var(--sab)); }
-.sheet-handle { width: 40px; height: 5px; background: #DDD; border-radius: 3px; margin: 12px auto 16px; }
-.sheet-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
-.fg { margin-bottom: 20px; }
-.fg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-.fg-header label { font-size: 12px; font-weight: 800; color: var(--text-sub); }
-.lnk-edit { font-size: 12px; font-weight: 700; color: var(--blue); background: none; border: none; padding: 4px; }
-.fi, .fta { width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 15px; background: #FAFAF8; outline: none; transition: border-color .15s; font-family: inherit; }
-.fi:focus, .fta:focus { border-color: var(--blue); }
-.fta { resize: vertical; min-height: 80px; }
+.sheet { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-height: 88vh; overflow-y: auto; padding: 0 16px calc(16px + var(--sab)); }
+.sheet-handle { width: 36px; height: 4px; background: #DDD; border-radius: 2px; margin: 10px auto 12px; }
+.sheet-title { font-size: 15px; font-weight: 800; margin-bottom: 12px; color: #333; }
 
-/* ===== TAG / CATEGORY BUTTONS ===== */
-.btn-grid { display: flex; flex-wrap: wrap; gap: 8px; }
-/* Category (Single Select) */
-.cat-btn { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: 700; background: #fff; color: #555; cursor: pointer; transition: all .1s; }
+.fg { margin-bottom: 12px; }
+.fg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 4px; }
+.fg-header label { font-size: 11px; font-weight: 800; color: var(--text-sub); }
+.lnk-edit { font-size: 11px; font-weight: 700; color: var(--blue); background: none; border: none; padding: 2px 4px; }
+
+/* 入力欄をスリム化 */
+.fi, .fta { width: 100%; border: 1.5px solid var(--border); border-radius: 8px; padding: 8px 10px; font-size: 13px; background: #FAFAF8; outline: none; font-family: inherit; }
+.fi:focus, .fta:focus { border-color: var(--blue); background: #fff; }
+.fta { resize: vertical; min-height: 48px; } /* メモ欄の高さを削減 */
+
+/* ボタン類をスリム化 */
+.btn-grid { display: flex; flex-wrap: wrap; gap: 6px; }
+.cat-btn { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 12px; font-weight: 700; background: #fff; color: #555; cursor: pointer; }
 .cat-btn.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue-mid); }
-/* Tag (Multi Select) */
-.tag-btn { padding: 7px 14px; border: 1.5px solid var(--border); border-radius: 30px; font-size: 13px; font-weight: 600; background: #FAFAF8; color: #666; cursor: pointer; transition: all .1s; }
+.tag-btn { padding: 5px 10px; border: 1px solid var(--border); border-radius: 20px; font-size: 11px; font-weight: 600; background: #FAFAF8; color: #666; cursor: pointer; }
 .tag-btn.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue-mid); font-weight: 700; }
 .tag-btn.on::before { content: '✓ '; }
 
-.btn-submit { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 800; margin-top: 10px; }
-.btn-cancel { width: 100%; background: #F0EDE8; color: var(--text-sub); border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 10px; }
+/* アクションボタン */
+.btn-submit { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 10px; padding: 12px; font-size: 14px; font-weight: 800; margin-top: 4px; cursor: pointer; }
+.btn-cancel { width: 100%; background: #F0EDE8; color: var(--text-sub); border: none; border-radius: 10px; padding: 10px; font-size: 12px; font-weight: 700; margin-top: 6px; cursor: pointer; }
 
 /* ===== SETTINGS MODAL ===== */
-.mgr-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; min-height: 30px; }
-.mgr-pill { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--border); padding: 5px 10px; border-radius: 20px; font-size: 13px; background: #FAFAF8; }
-.mgr-del { background: none; border: none; color: #999; font-size: 16px; padding: 0 4px; }
-.add-row { display: flex; gap: 8px; }
+.mgr-list { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; min-height: 24px; }
+.mgr-pill { display: inline-flex; align-items: center; gap: 4px; border: 1px solid var(--border); padding: 4px 10px; border-radius: 16px; font-size: 12px; background: #FAFAF8; }
+.mgr-del { background: none; border: none; color: #999; font-size: 14px; padding: 0 2px; cursor: pointer; }
+.add-row { display: flex; gap: 6px; }
 
-.toast { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: #222; color: #fff; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 999; }
+/* ===== TOAST ===== */
+.toast { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: rgba(30,30,30,0.9); color: #fff; padding: 10px 18px; border-radius: 24px; font-size: 12px; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 999; white-space: nowrap; }
 .toast.on { opacity: 1; }
 </style>
 </head>
@@ -144,7 +149,7 @@ body { font-size: 14px; line-height: 1.5; }
 <div id="toast" class="toast"></div>
 
 <script>
-// ★★★ Apps ScriptのURL ★★★
+// ご自身のApps Script URL
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBwT7jAEcrH9R9WrWjlzut-vBHTCxWIRG3bCmiUVWAz2ojJgjBFDnRp4l4G13qu2_4rQ/exec';
 
 const TABS = ['wants','shopping','talking','todo','restaurant','archive'];
@@ -154,7 +159,6 @@ let data = { wants:[], shopping:[], talking:[], todo:[], restaurant:[] };
 const store = {};
 const flt = { wants:[], shopping:[], talking:[], todo:[], restaurant:[] };
 
-// デフォルト設定（自由編集可能）
 let conf = {
   c_wants: ['お出かけ','おうち','旅行'], t_wants: ['サクッと','雨の日OK','1日がっつり'],
   c_shopping: ['ドラッグストア','スーパー','100均','ネット'], t_shopping: ['日用品','食品','急ぎ'],
@@ -174,15 +178,21 @@ function pTags(s){ return String(s||'').split(',').map(x=>x.trim()).filter(Boole
 function d2i(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return d.toISOString().split('T')[0];}catch(e){return'';} }
 function fDate(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return `${d.getMonth()+1}/${d.getDate()}`;}catch(e){return'';} }
 
-// ===== 画面描画 (かんばん) =====
+// ===== 画面描画 (Gridレイアウト版) =====
 function rpTab(tab) {
   if(tab === 'archive') return rpA();
+  
   const items = data[tab].filter(i => {
-    if(tab==='wants') return i.Done !== 'TRUE';
-    if(tab==='shopping') return i.Bought !== 'TRUE';
-    if(tab==='talking') return i.Talked !== 'TRUE';
-    if(tab==='todo') return i.Done !== 'TRUE';
-    if(tab==='restaurant') return i.Visited !== 'TRUE';
+    const name = String(i.Title || i.Name || '').trim();
+    // ゴミデータ（空行、メルアド、URL）を完全にシャットアウト
+    if(!name || name.includes('@') || name.startsWith('http')) return false;
+
+    if(tab==='wants') return String(i.Done).toUpperCase() !== 'TRUE';
+    if(tab==='shopping') return String(i.Bought).toUpperCase() !== 'TRUE';
+    if(tab==='talking') return String(i.Talked).toUpperCase() !== 'TRUE';
+    if(tab==='todo') return String(i.Done).toUpperCase() !== 'TRUE';
+    if(tab==='restaurant') return String(i.Visited).toUpperCase() !== 'TRUE';
+    return true;
   });
 
   document.getElementById('hdr-cnt').textContent = items.length ? items.length+'件' : '';
@@ -200,15 +210,15 @@ function rpTab(tab) {
     return;
   }
 
-  // カテゴリごとにグループ化 (かんばん)
   const map = {};
   filtered.forEach(i => {
-    let c = i.Category || (tab==='restaurant'?i.Location:'') || '未分類';
+    let c = String(i.Category || (tab==='restaurant'?i.Location:'') || '未分類').trim();
     if(!map[c]) map[c] = [];
     map[c].push(i);
   });
 
-  h += '<div class="masonry">';
+  // 均等な2列Grid
+  h += '<div class="kanban-grid">';
   Object.keys(map).sort((a,b)=>a==='未分類'?1:b==='未分類'?-1:a.localeCompare(b)).forEach(c => {
     h += `<div class="g-card"><div class="g-hd"><span class="g-dot">●</span>${esc(c)}</div>`;
     map[c].forEach(i => {
@@ -241,12 +251,12 @@ function togFlt(tab, tag) {
 function rpA() {
   let h = '';
   const makeList = (tab, arr, title, act) => {
-    const doneItems = arr.filter(i=>i[act]==='TRUE');
+    const doneItems = arr.filter(i => String(i[act]).toUpperCase() === 'TRUE' && (i.Title || i.Name));
     if(!doneItems.length) return '';
     return `<div class="sec-hd">${title}（${doneItems.length}件）</div>` + doneItems.map(i=>
       `<div class="card">
         <div class="card-title">${esc(i.Title||i.Name)}</div>
-        <div class="card-actions"><button class="btn-undo" onclick="markUndone('${tab}','${i.ID}')">↩ 未完了に戻す</button></div>
+        <button class="btn-undo" onclick="markUndone('${tab}','${i.ID}')">↩ 未完了に戻す</button>
       </div>`).join('');
   };
   h += makeList('wants', data.wants, '⭐ やりたいこと', 'Done');
@@ -257,18 +267,24 @@ function rpA() {
   document.getElementById('p-archive').innerHTML = h || '<div class="empty">完了したアイテムがありません</div>';
 }
 
-// ===== 状態変更 (完了/未完了) =====
+// ===== 高速状態変更 (Optimistic UI) =====
 function markDone(tab, id) {
   const item = store[id]; if(!item) return;
+  // 画面上ですぐに完了にする（0.1秒で消える）
   if(tab==='wants') item.Done = 'TRUE';
   if(tab==='shopping') item.Bought = 'TRUE';
   if(tab==='talking') item.Talked = 'TRUE';
   if(tab==='todo') item.Done = 'TRUE';
   if(tab==='restaurant') item.Visited = 'TRUE';
-  rpTab(tab); toast('✓ 完了しました');
+  
+  rpTab(tab);
+  toast('✓ 完了しました');
+  
+  // 裏側でこっそり保存（待たせない）
   const apiMap = {wants:'markWantDone', shopping:'markBought', talking:'markTalked', todo:'markTodoDone', restaurant:'markVisited'};
-  srv(apiMap[tab], {id});
+  srv(apiMap[tab], {id}).catch(() => toast('通信エラー: 保存されませんでした'));
 }
+
 function markUndone(tab, id) {
   const item = store[id]; if(!item) return;
   if(tab==='wants') item.Done = 'FALSE';
@@ -276,12 +292,15 @@ function markUndone(tab, id) {
   if(tab==='talking') item.Talked = 'FALSE';
   if(tab==='todo') item.Done = 'FALSE';
   if(tab==='restaurant') item.Visited = 'FALSE';
-  rpA(); toast('戻しました');
+  
+  rpA();
+  toast('戻しました');
+  
   const apiMap = {wants:'markWantUndone', shopping:'markUnbought', talking:'markUntalked', todo:'markTodoUndone', restaurant:'markUnvisited'};
-  srv(apiMap[tab], {id});
+  srv(apiMap[tab], {id}).catch(() => toast('通信エラー'));
 }
 
-// ===== フォーム UI (追加・編集) =====
+// ===== コンパクトフォーム UI =====
 function openForm(id) {
   const item = id ? store[id] : {};
   let tab = cur === 'archive' ? 'wants' : cur;
@@ -345,7 +364,7 @@ function selCat(btn) {
 }
 function closeMod(){ document.getElementById('ov').classList.remove('on'); }
 
-// ===== フォーム送信 =====
+// ===== 爆速送信 (Optimistic UI) 10秒待たせない！ =====
 function submitForm() {
   const id = document.getElementById('f-id').value;
   const tab = document.getElementById('f-tab').value;
@@ -364,16 +383,38 @@ function submitForm() {
   const isShopMulti = tab === 'shopping' && !isEdit && title.includes('\n');
   
   closeMod();
-  toast(isEdit ? '保存中...' : '追加中...');
-
+  
+  // 一括追加の場合（買い物のみ）
   if(isShopMulti) {
+    toast('一括追加しています...');
     const titles = title.split('\n').map(t=>t.trim()).filter(Boolean);
     Promise.all(titles.map(t => srv('addShopping', {title:t, category:cat, tags:tags, memo:memo})))
-      .then(()=>loadData()).catch(()=>toast('エラーが発生しました'));
+      .then(()=> { toast('追加しました'); loadData(); }).catch(()=>toast('エラーが発生しました'));
     return;
   }
 
-  const payload = { id, category: cat, tags: tags, memo: memo };
+  // --- 即時反映マジック ---
+  const newId = id || 'temp-' + Date.now();
+  const newItem = {
+    ID: newId, Title: title, Name: title,
+    Category: cat, Location: cat,
+    Tags: tags.join(','), Memo: memo,
+    DeadlineDate: dl, Deadline: dl, URL: url,
+    Done: 'FALSE', Bought: 'FALSE', Talked: 'FALSE', Visited: 'FALSE'
+  };
+
+  if (isEdit) {
+    const idx = data[tab].findIndex(x => x.ID === id);
+    if(idx > -1) data[tab][idx] = { ...data[tab][idx], ...newItem };
+  } else {
+    data[tab].push(newItem);
+  }
+  store[newId] = newItem;
+  rpTab(tab); // 画面に一瞬で表示！
+  toast(isEdit ? '保存しました' : '追加しました');
+
+  // 裏側で通信（待たせない）
+  const payload = { id: newId, category: cat, tags: tags, memo: memo };
   if(tab==='wants') { payload.title = title; payload.deadlineDate = dl; payload.url = url; }
   else if(tab==='shopping') { payload.title = title; }
   else if(tab==='talking') { payload.title = title; }
@@ -388,10 +429,10 @@ function submitForm() {
     restaurant: isEdit ? 'updateRestaurant' : 'addRestaurant'
   };
 
-  srv(apiMap[tab], payload).then(()=>{ toast(isEdit?'保存しました':'追加しました'); loadData(); }).catch(()=>toast('通信エラーが発生しました'));
+  srv(apiMap[tab], payload).catch(() => toast('裏側への保存に失敗しました'));
 }
 
-// ===== カテゴリ・タグ管理 UI =====
+// ===== 管理UI =====
 let editKey = '';
 function openMgr(key, typeName) {
   editKey = key;
@@ -401,7 +442,7 @@ function openMgr(key, typeName) {
 function renderMgr() {
   const items = conf[editKey] || [];
   const pills = items.map((t,i) => `<span class="mgr-pill">${esc(t)} <button class="mgr-del" onclick="rmMgr(${i})">×</button></span>`).join('');
-  let h = `<div class="mgr-list">${pills||'<span style="color:#aaa;font-size:13px">まだありません</span>'}</div>
+  let h = `<div class="mgr-list">${pills||'<span style="color:#aaa;font-size:12px">まだありません</span>'}</div>
            <div class="add-row">
              <input id="mgr-in" class="fi" type="text" placeholder="新しい項目" onkeydown="if(event.key==='Enter')addMgr()">
              <button class="cat-btn" style="background:var(--blue);color:#fff;border:none" onclick="addMgr()">追加</button>
@@ -426,7 +467,6 @@ function saveMgr() {
   });
 }
 
-// ===== 初期化 =====
 function sw(tab) {
   cur = tab;
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
@@ -458,8 +498,7 @@ function loadData() {
     rpTab(cur);
   }).catch(e => {
     console.error(e);
-    toast('通信エラー: アクセス権限等を確認してください');
-    document.querySelectorAll('.panel').forEach(p => p.innerHTML = '<div class="empty">データの読み込みに失敗しました</div>');
+    toast('通信エラー');
   });
 }
 

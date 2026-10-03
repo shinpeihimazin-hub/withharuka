@@ -144,8 +144,8 @@ body { font-size: 14px; line-height: 1.5; }
 <div id="toast" class="toast"></div>
 
 <script>
-// ★★★ Apps ScriptのURL ★★★
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZ4m6i8v2kXo_VzNIFK5p4Xj2f8v2kXo_VzNIFK5p4Xj2f8v2kXo/exec';
+// ★★★ Apps ScriptのURL（修正済！） ★★★
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBwT7jAEcrH9R9WrWjlzut-vBHTCxWIRG3bCmiUVWAz2ojJgjBFDnRp4l4G13qu2_4rQ/exec';
 
 const TABS = ['wants','shopping','talking','todo','restaurant','archive'];
 const LABELS = {wants:'やりたいこと', shopping:'買い物', talking:'話すこと', todo:'Todo', restaurant:'ご飯屋'};
@@ -297,16 +297,14 @@ function openForm(id) {
   document.getElementById('sh-title').textContent = `${LABELS[tab]} を${titleStr}`;
   
   const cKey = 'c_'+tab, tKey = 't_'+tab;
-  const cats = conf[cKey] || [], tags = conf[tKey] || [];
+  const cats = conf[cKey] || []; const tags = conf[tKey] || [];
   const curCat = item.Category || item.Location || '';
   const curTags = pTags(item.Tags);
 
-  // UIコンポーネント
   const cHtml = cats.map(c=>`<button type="button" class="cat-btn ${c===curCat?'on':''}" onclick="selCat(this)">${esc(c)}</button>`).join('');
   const tHtml = tags.map(t=>`<button type="button" class="tag-btn ${curTags.includes(t)?'on':''}" onclick="this.classList.toggle('on')">${esc(t)}</button>`).join('');
 
   let h = `<input type="hidden" id="f-id" value="${esc(item.ID||'')}"><input type="hidden" id="f-tab" value="${tab}">`;
-  
   const tTitle = tab==='restaurant' ? 'お店の名前' : 'タイトル';
   const tPlcHd = tab==='shopping' && !id ? "例: 牛乳\n卵\n（改行で一括追加）" : "例: 入力してください";
   
@@ -334,9 +332,7 @@ function openForm(id) {
   if(tab === 'wants' || tab === 'restaurant') {
     h += `<div class="fg"><div class="fg-header"><label>リンク (URL)</label></div><input id="f-url" class="fi" type="url" value="${esc(item.URL||'')}"></div>`;
   }
-  
   h += `<div class="fg"><div class="fg-header"><label>メモ</label></div><textarea id="f-memo" class="fta">${esc(item.Memo||'')}</textarea></div>`;
-  
   h += `<button class="btn-submit" onclick="submitForm()">${titleStr}する</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;
   
   document.getElementById('sh-body').innerHTML = h;
@@ -347,7 +343,6 @@ function selCat(btn) {
   document.querySelectorAll('#f-cats .cat-btn').forEach(b => b.classList.remove('on'));
   btn.classList.add('on');
 }
-
 function closeMod(){ document.getElementById('ov').classList.remove('on'); }
 
 // ===== フォーム送信 =====
@@ -393,7 +388,7 @@ function submitForm() {
     restaurant: isEdit ? 'updateRestaurant' : 'addRestaurant'
   };
 
-  srv(apiMap[tab], payload).then(()=>{ toast(isEdit?'保存しました':'追加しました'); loadData(); }).catch(()=>toast('エラー'));
+  srv(apiMap[tab], payload).then(()=>{ toast(isEdit?'保存しました':'追加しました'); loadData(); }).catch(()=>toast('通信エラーが発生しました'));
 }
 
 // ===== カテゴリ・タグ管理 UI =====
@@ -426,8 +421,8 @@ function saveMgr() {
   srv('saveTagSettings', conf).then(() => {
     toast('保存しました');
     const parts = editKey.split('_');
-    openForm(document.getElementById('f-id') ? document.getElementById('f-id').value : null); // 元のフォームに戻る
-    rpTab(parts[1]); // 一覧も更新
+    openForm(document.getElementById('f-id') ? document.getElementById('f-id').value : null);
+    rpTab(parts[1]);
   });
 }
 
@@ -448,14 +443,12 @@ function loadData() {
     srv('getWants'), srv('getShopping'), srv('getTalking'), srv('getTodos'), srv('getRestaurants')
   ]).then(([sett, w, s, ta, td, r]) => {
     if(sett && Object.keys(sett).length > 0) {
-      // 互換性吸収 (古い設定を新しい設定キーにマッピング)
       conf.t_wants = sett.wants || sett.t_wants || conf.t_wants;
       conf.c_restaurant = sett.restaurantLocations || sett.c_restaurant || conf.c_restaurant;
       conf.t_restaurant = sett.restaurant || sett.t_restaurant || conf.t_restaurant;
       conf.t_shopping = sett.shopping || sett.t_shopping || conf.t_shopping;
       conf.t_talking = sett.talking || sett.t_talking || conf.t_talking;
       conf.t_todo = sett.todo || sett.t_todo || conf.t_todo;
-      // 新しい独自カテゴリがあれば上書き
       Object.keys(conf).forEach(k => { if(sett[k]) conf[k] = sett[k]; });
     }
     
@@ -463,6 +456,9 @@ function loadData() {
     [data.wants, data.shopping, data.talking, data.todo, data.restaurant].forEach(arr => arr.forEach(i=>store[i.ID]=i));
     
     rpTab(cur);
+  }).catch(e => {
+    console.error(e);
+    toast('データの読み込みに失敗しました');
   });
 }
 

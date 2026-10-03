@@ -8,389 +8,132 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="apple-mobile-web-app-title" content="2人のリスト">
 <meta name="theme-color" content="#4A8FD4">
-<link rel="manifest" id="pwa-manifest">
 <title>2人のリスト</title>
 <style>
 /* ===== RESET / BASE ===== */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
 :root {
-  --blue: #4A8FD4;
-  --blue-light: #EBF3FF;
-  --blue-mid: #2D6FB0;
-  --bg: #F2F1EE;
-  --card: #FFFFFF;
-  --border: #E4E0DA;
-  --text: #1A1A1A;
-  --text-sub: #888;
-  --text-hint: #BBB;
-  --green: #3A9E42;
-  --green-light: #E8F5E9;
-  --red: #CC3333;
-  --orange: #D46A2A;
-  --sat: env(safe-area-inset-top, 0px);
-  --sab: env(safe-area-inset-bottom, 0px);
-  --hdr: 48px;
-  --tab: 50px;
+  --blue: #4A8FD4; --blue-light: #EBF3FF; --blue-mid: #2D6FB0;
+  --bg: #F2F1EE; --card: #FFFFFF; --border: #E4E0DA;
+  --text: #1A1A1A; --text-sub: #888; --text-hint: #BBB;
+  --green: #3A9E42; --green-light: #E8F5E9; --red: #CC3333;
+  --sat: env(safe-area-inset-top, 0px); --sab: env(safe-area-inset-bottom, 0px);
+  --hdr: 48px; --tab: 50px;
 }
-html, body {
-  height: 100%;
-  font-family: -apple-system, 'Hiragino Sans', 'Hiragino Kaku Gothic ProN', sans-serif;
-  background: var(--bg);
-  color: var(--text);
-  overscroll-behavior: none;
-  -webkit-overflow-scrolling: touch;
-}
+html, body { height: 100%; font-family: -apple-system, 'Hiragino Sans', sans-serif; background: var(--bg); color: var(--text); overscroll-behavior: none; -webkit-overflow-scrolling: touch; }
 body { font-size: 14px; line-height: 1.5; }
 
-/* ===== HEADER ===== */
-.hdr {
-  position: fixed; top: 0; left: 0; right: 0; z-index: 100;
-  padding-top: var(--sat);
-  background: #fff; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; padding-left: 14px; padding-right: 14px;
-  height: calc(var(--hdr) + var(--sat));
-}
+/* ===== HEADER & TABS ===== */
+.hdr { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding-top: var(--sat); background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 14px; height: calc(var(--hdr) + var(--sat)); }
 .hdr-title { font-size: 16px; font-weight: 800; flex: 1; }
-.hdr-count {
-  font-size: 12px; font-weight: 700; color: var(--text-sub);
-  background: var(--bg); padding: 3px 10px; border-radius: 20px;
-}
-
-/* ===== BOTTOM TAB BAR ===== */
-.tabs {
-  position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
-  background: #fff; border-top: 1px solid var(--border);
-  display: flex;
-  padding-bottom: var(--sab);
-}
-.tab {
-  flex: 1; display: flex; flex-direction: column; align-items: center;
-  justify-content: center; gap: 2px; background: none; border: none;
-  cursor: pointer; font-family: inherit; color: var(--text-hint);
-  font-size: 10px; font-weight: 700; letter-spacing: .1px;
-  height: var(--tab); padding: 0 2px; transition: color .15s;
-  -webkit-tap-highlight-color: transparent;
-}
+.hdr-count { font-size: 12px; font-weight: 700; color: var(--text-sub); background: var(--bg); padding: 3px 10px; border-radius: 20px; }
+.tabs { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: #fff; border-top: 1px solid var(--border); display: flex; padding-bottom: var(--sab); }
+.tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: none; border: none; cursor: pointer; color: var(--text-hint); font-size: 10px; font-weight: 700; height: var(--tab); padding: 0 2px; }
 .tab.on { color: var(--blue); }
 .tab-ico { font-size: 21px; line-height: 1; }
 
-/* ===== MAIN CONTENT ===== */
-.main {
-  padding-top: calc(var(--hdr) + var(--sat));
-  padding-bottom: calc(var(--tab) + var(--sab) + 14px);
-  min-height: 100dvh; min-height: 100vh;
-}
+/* ===== MAIN CONTENT & MASONRY ===== */
+.main { padding-top: calc(var(--hdr) + var(--sat)); padding-bottom: calc(var(--tab) + var(--sab) + 14px); min-height: 100vh; }
 .panel { display: none; padding: 10px 12px; }
 .panel.on { display: block; }
-
-/* ===== FILTER BAR ===== */
-.filter-bar {
-  position: sticky;
-  top: calc(var(--hdr) + var(--sat));
-  z-index: 80; background: var(--bg);
-  margin: -10px -12px 10px;
-  padding: 8px 0 6px 12px;
-}
-.flt-toggle-row {
-  display: flex; align-items: center; gap: 7px;
-  padding-right: 12px; margin-bottom: 0;
-}
-.flt-toggle-btn {
-  flex-shrink: 0; background: none; border: 1.5px solid var(--border);
-  border-radius: 20px; padding: 5px 11px; font-size: 13px; font-weight: 700;
-  color: var(--text-sub); cursor: pointer; font-family: inherit;
-  display: flex; align-items: center; gap: 4px; transition: all .15s;
-}
-.flt-toggle-btn.active { border-color: var(--blue); color: var(--blue-mid); background: var(--blue-light); }
-.flt-active-summary {
-  flex: 1; font-size: 12px; color: var(--blue-mid); font-weight: 700;
-  overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-}
-.flt-expandable { overflow: hidden; transition: max-height .25s ease; }
-.flt-expandable.closed { max-height: 0; }
-.flt-expandable.open  { max-height: 500px; }
-.filter-row {
-  display: flex; align-items: center; gap: 7px;
-  overflow-x: auto; padding-right: 14px;
-  scrollbar-width: none; margin-bottom: 5px;
-  -webkit-overflow-scrolling: touch;
-}
-.filter-row::-webkit-scrollbar { display: none; }
-.filter-row:last-child { margin-bottom: 0; }
-.filter-lbl { flex-shrink: 0; font-size: 11px; font-weight: 800; color: var(--text-hint); white-space: nowrap; }
-.chip {
-  flex-shrink: 0; padding: 8px 16px; border-radius: 30px;
-  border: 1.5px solid var(--border); background: #fff;
-  color: var(--text-sub); font-size: 14px; font-weight: 600;
-  font-family: inherit; cursor: pointer; white-space: nowrap;
-  transition: all .15s;
-}
-.chip.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue-mid); font-weight: 800; }
-.chip.on::before { content: '✓ '; }
-.sort-sel {
-  flex-shrink: 0; margin-left: auto; margin-right: 14px;
-  border: 1.5px solid var(--border); border-radius: 10px;
-  padding: 7px 10px; font-size: 13px; font-family: inherit;
-  background: #fff; color: var(--text-sub); outline: none;
-}
-.tag-mgr { flex-shrink: 0; background: none; border: 1.5px solid var(--border); border-radius: 10px; padding: 7px 12px; font-size: 13px; font-weight: 700; color: var(--text-hint); cursor: pointer; font-family: inherit; white-space: nowrap; }
-.filter-banner {
-  margin: 0 14px 5px 0; padding: 8px 14px; border-radius: 10px;
-  background: var(--blue-light); color: var(--blue-mid); font-size: 14px; font-weight: 700;
-  display: flex; justify-content: space-between; align-items: center;
-}
-.filter-clr { background: none; border: none; color: var(--blue); font-size: 14px; font-weight: 800; cursor: pointer; font-family: inherit; text-decoration: underline; }
-
-/* ===== CARD (Wants, Restaurant, Archive) ===== */
-.card {
-  background: var(--card); border-radius: 14px;
-  padding: 13px 13px 11px; margin-bottom: 10px;
-  box-shadow: 0 1px 5px rgba(0,0,0,.07);
-}
-.card-title { font-size: 15px; font-weight: 700; line-height: 1.45; margin-bottom: 10px; }
-.card-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 6px; }
-.pill { border-radius: 20px; padding: 3px 10px; font-size: 12px; font-weight: 600; display: inline-block; }
-.pill-tag  { background: var(--blue-light); color: #3D7CC9; }
-.pill-cat  { background: #F0EDE8; color: #666; }
-.pill-dl   { background: #FFF3EC; color: var(--orange); font-weight: 700; }
-.pill-dl.past { background: #FFECEC; color: var(--red); }
-.pill-loc  { background: #F0F7EE; color: #4A8A42; }
-.pill-meal { background: #F9F0FF; color: #7C4DC0; }
-.pill-bgt  { background: #FFFBEC; color: #A07020; }
-.card-memo { font-size: 13px; color: var(--text-sub); margin-top: 7px; line-height: 1.6; white-space: pre-wrap; }
-.card-date { font-size: 12px; color: #6DBF6D; margin-top: 6px; font-weight: 600; }
-.card-link {
-  display: inline-flex; align-items: center; gap: 5px; margin-top: 9px;
-  font-size: 13px; font-weight: 700; color: var(--blue);
-  text-decoration: none; background: var(--blue-light);
-  border-radius: 8px; padding: 5px 11px;
-}
-.card-actions { display: flex; gap: 7px; margin-top: 11px; align-items: center; }
-.btn-done {
-  flex: 1; background: var(--blue); color: #fff; border: none;
-  border-radius: 11px; padding: 11px; font-size: 15px; font-weight: 700;
-  font-family: inherit; cursor: pointer; text-align: center;
-}
-.btn-done:active { opacity: .8; }
-.btn-edit {
-  background: none; border: 1.5px solid var(--border); color: var(--text-sub);
-  border-radius: 11px; padding: 11px 13px; font-size: 13px; font-weight: 700;
-  font-family: inherit; cursor: pointer;
-}
-.btn-edit:active { opacity: .7; }
-.btn-undo {
-  background: #F0EDE8; color: var(--text-sub); border: none;
-  border-radius: 11px; padding: 11px 13px; font-size: 13px; font-weight: 700;
-  font-family: inherit; cursor: pointer;
-}
-.btn-rereg {
-  background: var(--green-light); color: var(--green); border: none;
-  border-radius: 11px; padding: 11px 13px; font-size: 13px; font-weight: 700;
-  font-family: inherit; cursor: pointer;
-}
-.btn-undo:active, .btn-rereg:active { opacity: .75; }
-.card.archived { opacity: .6; }
-.card.archived .card-title { text-decoration: line-through; color: var(--text-sub); }
-
-/* ===== MASONRY GRID (Shopping, Talking, Todo) ===== */
-.masonry {
-  column-count: 2;
-  column-gap: 10px;
-  margin-bottom: 10px;
-}
-.g-card {
-  break-inside: avoid;
-  background: var(--card);
-  border-radius: 12px;
-  padding: 10px;
-  margin-bottom: 10px;
-  box-shadow: 0 1px 4px rgba(0,0,0,.06);
-}
-.g-hd {
-  font-size: 13px; font-weight: 800; color: #555;
-  margin-bottom: 10px; display: flex; align-items: center; gap: 5px;
-  border-bottom: 1px solid #F0EDE8; padding-bottom: 6px;
-}
-.g-dot { color: var(--blue); font-size: 10px; line-height: 1; }
+.masonry { column-count: 2; column-gap: 10px; margin-top: 10px; }
+.g-card { break-inside: avoid; background: var(--card); border-radius: 12px; padding: 10px; margin-bottom: 10px; box-shadow: 0 1px 4px rgba(0,0,0,.06); }
+.g-hd { font-size: 13px; font-weight: 800; color: #555; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #F0EDE8; padding-bottom: 6px; }
+.g-dot { color: var(--blue); font-size: 10px; }
 .g-item { display: flex; align-items: flex-start; gap: 8px; margin-bottom: 10px; }
 .g-item:last-child { margin-bottom: 2px; }
-.g-chk {
-  width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px;
-  border: 1.5px solid #CCC; border-radius: 50%;
-  cursor: pointer; transition: background .1s;
-}
+.g-chk { width: 20px; height: 20px; flex-shrink: 0; margin-top: 1px; border: 1.5px solid #CCC; border-radius: 50%; cursor: pointer; transition: background .1s; }
 .g-chk:active { background: #E4E0DA; }
-.g-txt {
-  font-size: 14px; font-weight: 700; color: #333;
-  line-height: 1.35; flex: 1; cursor: pointer;
-}
-.g-sub {
-  font-size: 11px; color: var(--text-hint); font-weight: 600; margin-top: 3px;
-}
+.g-txt { font-size: 14px; font-weight: 700; color: #333; line-height: 1.35; flex: 1; cursor: pointer; }
+.g-sub { font-size: 11px; color: var(--text-hint); font-weight: 600; margin-top: 3px; }
+.g-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+.g-tag { font-size: 10px; background: var(--bg); color: var(--text-sub); padding: 2px 6px; border-radius: 4px; }
 
-/* ===== SECTION HEADING ===== */
-.sec-hd { font-size: 13px; font-weight: 800; color: var(--text-hint); letter-spacing: .5px; margin: 20px 0 10px; }
-.sec-hd:first-child { margin-top: 0; }
+/* ===== FILTER BAR ===== */
+.filter-bar { position: sticky; top: calc(var(--hdr) + var(--sat)); z-index: 80; background: var(--bg); margin: -10px -12px 10px; padding: 8px 12px 6px; border-bottom: 1px solid var(--border); }
+.filter-row { display: flex; align-items: center; gap: 7px; overflow-x: auto; scrollbar-width: none; -webkit-overflow-scrolling: touch; padding-bottom: 4px; }
+.filter-row::-webkit-scrollbar { display: none; }
+.chip { flex-shrink: 0; padding: 6px 14px; border-radius: 30px; border: 1.5px solid var(--border); background: #fff; color: var(--text-sub); font-size: 13px; font-weight: 600; font-family: inherit; cursor: pointer; }
+.chip.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue-mid); font-weight: 800; }
+.filter-lbl { flex-shrink: 0; font-size: 11px; font-weight: 800; color: var(--text-hint); }
 
-/* ===== EMPTY ===== */
-.empty { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 0; color: var(--text-hint); gap: 12px; text-align: center; }
+/* ===== ARCHIVE CARD ===== */
+.card { background: var(--card); border-radius: 12px; padding: 12px; margin-bottom: 10px; opacity: .7; }
+.card-title { font-size: 14px; font-weight: 700; text-decoration: line-through; color: var(--text-sub); margin-bottom: 6px;}
+.card-actions { display: flex; gap: 6px; margin-top: 8px; }
+.btn-undo { flex: 1; background: #F0EDE8; border: none; border-radius: 8px; padding: 8px; font-size: 12px; font-weight: 700; color: #555; }
+.sec-hd { font-size: 13px; font-weight: 800; color: var(--text-hint); margin: 16px 0 8px; }
+
+/* ===== EMPTY & LOADING ===== */
+.empty { display: flex; flex-direction: column; align-items: center; padding: 60px 0; color: var(--text-hint); text-align: center; gap: 10px; }
 .empty-ico { font-size: 40px; }
-.empty-txt { font-size: 14px; }
+.spin { width: 24px; height: 24px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .75s linear infinite; margin: 40px auto; }
+@keyframes spin { to { transform: rotate(360deg); } }
 
 /* ===== FAB ===== */
-.fab {
-  position: fixed; right: 20px;
-  bottom: calc(var(--tab) + var(--sab) + 14px);
-  width: 52px; height: 52px; border-radius: 50%;
-  background: var(--blue); color: #fff; border: none;
-  font-size: 26px; line-height: 52px; text-align: center;
-  box-shadow: 0 4px 16px rgba(74,143,212,.5);
-  z-index: 200; cursor: pointer; transition: transform .12s;
-}
+.fab { position: fixed; right: 20px; bottom: calc(var(--tab) + var(--sab) + 14px); width: 52px; height: 52px; border-radius: 50%; background: var(--blue); color: #fff; border: none; font-size: 26px; box-shadow: 0 4px 16px rgba(74,143,212,.5); z-index: 200; cursor: pointer; transition: transform .1s; }
 .fab:active { transform: scale(.9); }
 .fab.hide { display: none; }
 
-/* ===== MODAL (sheet-up) ===== */
-.overlay {
-  display: none; position: fixed; inset: 0;
-  background: rgba(0,0,0,.45); z-index: 300; align-items: flex-end;
-}
+/* ===== MODAL & FORM ===== */
+.overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; align-items: flex-end; }
 .overlay.on { display: flex; }
-.sheet {
-  background: #fff; border-radius: 26px 26px 0 0; width: 100%;
-  max-height: 94dvh; max-height: 94vh;
-  overflow-y: auto; -webkit-overflow-scrolling: touch;
-  padding: 0 16px calc(24px + var(--sab));
-}
-.sheet-handle { width: 44px; height: 5px; background: #DDD; border-radius: 3px; margin: 16px auto 20px; }
-.sheet-title { font-size: 18px; font-weight: 800; margin-bottom: 18px; }
+.sheet { background: #fff; border-radius: 26px 26px 0 0; width: 100%; max-height: 94vh; overflow-y: auto; padding: 0 16px calc(24px + var(--sab)); }
+.sheet-handle { width: 40px; height: 5px; background: #DDD; border-radius: 3px; margin: 12px auto 16px; }
+.sheet-title { font-size: 18px; font-weight: 800; margin-bottom: 16px; }
+.fg { margin-bottom: 20px; }
+.fg-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+.fg-header label { font-size: 12px; font-weight: 800; color: var(--text-sub); }
+.lnk-edit { font-size: 12px; font-weight: 700; color: var(--blue); background: none; border: none; padding: 4px; }
+.fi, .fta { width: 100%; border: 2px solid var(--border); border-radius: 12px; padding: 12px 14px; font-size: 15px; background: #FAFAF8; outline: none; transition: border-color .15s; font-family: inherit; }
+.fi:focus, .fta:focus { border-color: var(--blue); }
+.fta { resize: vertical; min-height: 80px; }
 
-/* ===== FORM ===== */
-.fg { margin-bottom: 22px; }
-.fg label { display: block; font-size: 12px; font-weight: 800; color: var(--text-sub); margin-bottom: 9px; letter-spacing: .3px; }
-.fg-row { display: flex; justify-content: space-between; align-items: center; margin-bottom: 9px; }
-.fg-row label { margin-bottom: 0; }
-.fi, .fta, .fsel {
-  width: 100%; border: 2px solid var(--border); border-radius: 16px;
-  padding: 13px 15px; font-size: 15px; font-family: inherit;
-  background: #FAFAF8; color: var(--text); outline: none; appearance: none;
-  transition: border-color .15s; -webkit-appearance: none;
-}
-.fi:focus, .fta:focus, .fsel:focus { border-color: var(--blue); }
-.fta { resize: vertical; min-height: 88px; line-height: 1.6; }
+/* ===== TAG / CATEGORY BUTTONS ===== */
+.btn-grid { display: flex; flex-wrap: wrap; gap: 8px; }
+/* Category (Single Select) */
+.cat-btn { padding: 8px 14px; border: 1.5px solid var(--border); border-radius: 8px; font-size: 14px; font-weight: 700; background: #fff; color: #555; cursor: pointer; transition: all .1s; }
+.cat-btn.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue-mid); }
+/* Tag (Multi Select) */
+.tag-btn { padding: 7px 14px; border: 1.5px solid var(--border); border-radius: 30px; font-size: 13px; font-weight: 600; background: #FAFAF8; color: #666; cursor: pointer; transition: all .1s; }
+.tag-btn.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue-mid); font-weight: 700; }
+.tag-btn.on::before { content: '✓ '; }
 
-/* ===== TAG SECTION ===== */
-.tag-grid { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 10px; }
-.tag-opt {
-  padding: 7px 13px; border: 1.5px solid var(--border); border-radius: 30px;
-  font-size: 14px; cursor: pointer; background: #FAFAF8; color: #666;
-  font-family: inherit; font-weight: 600; transition: all .15s;
-}
-.tag-opt.on { border-color: var(--blue); background: var(--blue-light); color: var(--blue-mid); font-weight: 800; }
-.loc-opt {
-  padding: 7px 13px; border: 1.5px solid var(--border); border-radius: 30px;
-  font-size: 14px; cursor: pointer; background: #FAFAF8; color: #666;
-  font-family: inherit; font-weight: 600; transition: all .15s;
-}
-.loc-opt.on { border-color: #4A8A42; background: #F0F7EE; color: #2E6E28; font-weight: 800; }
-.custom-tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-.custom-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  background: var(--blue-light); border: 2px solid #C0D8F0; color: var(--blue-mid);
-  border-radius: 20px; padding: 5px 11px; font-size: 13px; font-weight: 700;
-}
-.custom-del { background: none; border: none; cursor: pointer; color: #8BB4D8; font-size: 18px; line-height: 1; padding: 0; }
-.tag-add-row { display: flex; gap: 10px; align-items: center; margin-top: 10px; }
-.tag-fi {
-  flex: 1; border: 2px solid var(--border); border-radius: 16px;
-  padding: 14px 16px; font-size: 16px; font-family: inherit;
-  background: #FAFAF8; outline: none; transition: border-color .15s;
-}
-.tag-fi:focus { border-color: var(--blue); }
-.tag-add-btn {
-  border: none; background: var(--blue); color: #fff;
-  border-radius: 14px; padding: 14px 18px; font-size: 16px;
-  font-weight: 700; font-family: inherit; cursor: pointer; white-space: nowrap;
-}
+.btn-submit { width: 100%; background: var(--blue); color: #fff; border: none; border-radius: 12px; padding: 14px; font-size: 15px; font-weight: 800; margin-top: 10px; }
+.btn-cancel { width: 100%; background: #F0EDE8; color: var(--text-sub); border: none; border-radius: 12px; padding: 12px; font-size: 14px; font-weight: 700; margin-top: 10px; }
 
-/* ===== TAG MGR ===== */
-.tmgr-sec { margin-bottom: 28px; }
-.tmgr-sec-title { font-size: 16px; font-weight: 800; color: #555; margin-bottom: 14px; padding-bottom: 8px; border-bottom: 1.5px solid #EEE; }
-.tmgr-list { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; min-height: 28px; }
-.tmgr-pill {
-  display: inline-flex; align-items: center; gap: 6px;
-  border: 1.5px solid var(--border); border-radius: 20px;
-  padding: 6px 12px; font-size: 14px; font-weight: 600; color: #555; background: #FAFAF8;
-}
-.tmgr-del { background: none; border: none; cursor: pointer; color: #CCC; font-size: 17px; line-height: 1; padding: 0; }
-.tmgr-empty { font-size: 15px; color: var(--text-hint); }
+/* ===== SETTINGS MODAL ===== */
+.mgr-list { display: flex; flex-wrap: wrap; gap: 8px; margin-bottom: 12px; min-height: 30px; }
+.mgr-pill { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--border); padding: 5px 10px; border-radius: 20px; font-size: 13px; background: #FAFAF8; }
+.mgr-del { background: none; border: none; color: #999; font-size: 16px; padding: 0 4px; }
+.add-row { display: flex; gap: 8px; }
 
-/* ===== BUTTONS ===== */
-.btn-submit {
-  width: 100%; background: var(--blue); color: #fff; border: none;
-  border-radius: 14px; padding: 15px; font-size: 16px; font-weight: 800;
-  cursor: pointer; font-family: inherit; margin-top: 8px; transition: opacity .12s;
-}
-.btn-submit:active { opacity: .8; }
-.btn-submit:disabled { opacity: .5; cursor: not-allowed; }
-.btn-cancel {
-  width: 100%; background: #F0EDE8; color: var(--text-sub); border: none;
-  border-radius: 14px; padding: 13px; font-size: 15px; font-weight: 700;
-  cursor: pointer; font-family: inherit; margin-top: 12px;
-}
-.btn-cancel:active { opacity: .8; }
-.lnk-edit { font-size: 13px; font-weight: 700; color: var(--blue); background: none; border: none; cursor: pointer; font-family: inherit; text-decoration: underline; }
-
-/* ===== LOADING ===== */
-.loading { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 70px 0; color: var(--text-hint); font-size: 17px; }
-.spin { width: 28px; height: 28px; border: 3px solid var(--border); border-top-color: var(--blue); border-radius: 50%; animation: spin .75s linear infinite; }
-@keyframes spin { to { transform: rotate(360deg); } }
-
-/* ===== TOAST ===== */
-.toast {
-  position: fixed; left: 50%;
-  bottom: calc(var(--tab) + var(--sab) + 12px);
-  transform: translateX(-50%) translateY(10px);
-  background: #222; color: #fff; padding: 14px 24px; border-radius: 30px;
-  font-size: 16px; font-weight: 600; z-index: 999; opacity: 0;
-  transition: opacity .2s, transform .2s; pointer-events: none;
-  white-space: nowrap; max-width: 88vw; text-align: center;
-}
-.toast.on { opacity: 1; transform: translateX(-50%) translateY(0); }
+.toast { position: fixed; left: 50%; bottom: 80px; transform: translateX(-50%); background: #222; color: #fff; padding: 12px 20px; border-radius: 30px; font-size: 14px; font-weight: 600; opacity: 0; transition: opacity .2s; pointer-events: none; z-index: 999; }
+.toast.on { opacity: 1; }
 </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header class="hdr">
-  <span class="hdr-title">2人のリスト 💑</span>
-  <span id="hdr-cnt" class="hdr-count"></span>
-</header>
-
-<!-- PANELS -->
+<header class="hdr"><span class="hdr-title">2人のリスト 💑</span><span id="hdr-cnt" class="hdr-count"></span></header>
 <main class="main">
-  <div id="p-wants"      class="panel on"><div class="loading"><div class="spin"></div>読み込み中…</div></div>
-  <div id="p-shopping"   class="panel"><div class="loading"><div class="spin"></div>読み込み中…</div></div>
-  <div id="p-talking"    class="panel"><div class="loading"><div class="spin"></div>読み込み中…</div></div>
-  <div id="p-todo"       class="panel"><div class="loading"><div class="spin"></div>読み込み中…</div></div>
-  <div id="p-restaurant" class="panel"><div class="loading"><div class="spin"></div>読み込み中…</div></div>
-  <div id="p-archive"    class="panel"></div>
+  <div id="p-wants" class="panel on"><div class="spin"></div></div>
+  <div id="p-shopping" class="panel"><div class="spin"></div></div>
+  <div id="p-talking" class="panel"><div class="spin"></div></div>
+  <div id="p-todo" class="panel"><div class="spin"></div></div>
+  <div id="p-restaurant" class="panel"><div class="spin"></div></div>
+  <div id="p-archive" class="panel"></div>
 </main>
+<button id="fab" class="fab" onclick="openForm(null)">＋</button>
 
-<!-- FAB -->
-<button id="fab" class="fab" onclick="openModal(null)">＋</button>
-
-<!-- BOTTOM TABS -->
 <nav class="tabs">
-  <button class="tab on"  onclick="sw('wants')">      <span class="tab-ico">⭐</span>やりたい</button>
-  <button class="tab"     onclick="sw('shopping')">   <span class="tab-ico">🛒</span>買い物</button>
-  <button class="tab"     onclick="sw('talking')">    <span class="tab-ico">💬</span>話すこと</button>
-  <button class="tab"     onclick="sw('todo')">       <span class="tab-ico">✅</span>Todo</button>
-  <button class="tab"     onclick="sw('restaurant')"> <span class="tab-ico">🍽</span>ご飯屋</button>
-  <button class="tab"     onclick="sw('archive')">    <span class="tab-ico">📁</span>完了</button>
+  <button class="tab on" onclick="sw('wants')"><span class="tab-ico">⭐</span>やりたい</button>
+  <button class="tab" onclick="sw('shopping')"><span class="tab-ico">🛒</span>買い物</button>
+  <button class="tab" onclick="sw('talking')"><span class="tab-ico">💬</span>話すこと</button>
+  <button class="tab" onclick="sw('todo')"><span class="tab-ico">✅</span>Todo</button>
+  <button class="tab" onclick="sw('restaurant')"><span class="tab-ico">🍽</span>ご飯屋</button>
+  <button class="tab" onclick="sw('archive')"><span class="tab-ico">📁</span>完了</button>
 </nav>
 
-<!-- MODAL -->
 <div id="ov" class="overlay" onclick="if(event.target===this)closeMod()">
   <div class="sheet">
     <div class="sheet-handle"></div>
@@ -398,484 +141,332 @@ body { font-size: 14px; line-height: 1.5; }
     <div id="sh-body"></div>
   </div>
 </div>
-
 <div id="toast" class="toast"></div>
 
 <script>
-// ================================================================
-// ★★★ ここにApps ScriptのURLを貼る ★★★
-// ================================================================
-const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBwT7jAEcrH9R9WrWjlzut-vBHTCxWIRG3bCmiUVWAz2ojJgjBFDnRp4l4G13qu2_4rQ/exec';
+// ★★★ Apps ScriptのURL ★★★
+const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxZ4m6i8v2kXo_VzNIFK5p4Xj2f8v2kXo_VzNIFK5p4Xj2f8v2kXo/exec';
 
-// ================================================================
-// 同期中カウント（離脱防止プロテクト用）
-// ================================================================
-let activeSyncCount = 0;
-function startSync() { activeSyncCount++; }
-function endSync() { activeSyncCount = Math.max(0, activeSyncCount - 1); }
-window.addEventListener('beforeunload', (e) => {
-  if (activeSyncCount > 0) {
-    e.preventDefault();
-    e.returnValue = 'データの保存中です。このまま離れますか？';
-  }
-});
-
-// ================================================================
-// 定数
-// ================================================================
-const SHOP_CATS   = ['日用品','食品','プレゼント','家のもの','消耗品'];
-const TALK_CATS   = ['雑談','今後の予定','関係のこと','買い物・事務','行きたい場所の相談'];
-const REST_GENRES = ['居酒屋','和食','洋食','イタリアン','フレンチ','中華','焼肉・焼き鳥','ラーメン・麺類','カフェ・スイーツ','その他'];
-const REST_MEALS  = ['ランチ','ディナー','どちらでも'];
-const REST_BUDGETS= ['〜1000円','〜2000円','〜3000円','〜5000円','〜8000円','〜10000円','10000円以上'];
 const TABS = ['wants','shopping','talking','todo','restaurant','archive'];
-
-// ================================================================
-// 状態
-// ================================================================
-let tagSettings = {wants:[],shopping:[],talking:[],todo:[],restaurant:[],restaurantLocations:[]};
+const LABELS = {wants:'やりたいこと', shopping:'買い物', talking:'話すこと', todo:'Todo', restaurant:'ご飯屋'};
 let cur = 'wants';
-let allW=[], allS=[], allT=[], allTd=[], allR=[];
+let data = { wants:[], shopping:[], talking:[], todo:[], restaurant:[] };
 const store = {};
-const flt = {
-  wants:      {tags:[],sort:'def'},
-  shopping:   {tags:[],sort:'def'},
-  talking:    {tags:[],sort:'def'},
-  todo:       {tags:[],sort:'def'},
-  restaurant: {tags:[],genre:'',meal:'',loc:'',sort:'def'}
+const flt = { wants:[], shopping:[], talking:[], todo:[], restaurant:[] };
+
+// デフォルト設定（自由編集可能）
+let conf = {
+  c_wants: ['お出かけ','おうち','旅行'], t_wants: ['サクッと','雨の日OK','1日がっつり'],
+  c_shopping: ['ドラッグストア','スーパー','100均','ネット'], t_shopping: ['日用品','食品','急ぎ'],
+  c_talking: ['相談','雑談','予定'], t_talking: ['急ぎ','重要'],
+  c_todo: ['手続き','家事','仕事'], t_todo: ['急ぎ','重要'],
+  c_restaurant: ['渋谷','新宿','東京'], t_restaurant: ['ランチ','ディナー','居酒屋','カフェ']
 };
 
-// ================================================================
-// API通信
-// ================================================================
-function srv(action, data) {
-  if (!SCRIPT_URL || SCRIPT_URL.includes('★')) {
-    return Promise.reject(new Error('SCRIPT_URLが設定されていません'));
-  }
+function srv(action, payload) {
   let url = SCRIPT_URL + '?action=' + encodeURIComponent(action);
-  if (data !== undefined) {
-    url += '&data=' + encodeURIComponent(JSON.stringify(data));
-  }
-  return fetch(url).then(r => { if (!r.ok) throw new Error('HTTP ' + r.status); return r.json(); });
+  if(payload) url += '&data=' + encodeURIComponent(JSON.stringify(payload));
+  return fetch(url).then(r => r.json());
 }
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('on'); setTimeout(()=>e.classList.remove('on'),2500); }
+function pTags(s){ return String(s||'').split(',').map(x=>x.trim()).filter(Boolean); }
+function d2i(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return d.toISOString().split('T')[0];}catch(e){return'';} }
+function fDate(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return `${d.getMonth()+1}/${d.getDate()}`;}catch(e){return'';} }
 
-// ================================================================
-// ユーティリティ
-// ================================================================
-function esc(s){return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
-function fmtDate(iso){if(!iso)return'';try{const d=new Date(iso);if(isNaN(d.getTime()))return'';return`${d.getFullYear()}/${String(d.getMonth()+1).padStart(2,'0')}/${String(d.getDate()).padStart(2,'0')}`;}catch(e){return'';}}
-function fmtDT(iso){if(!iso)return'';try{const d=new Date(iso);if(isNaN(d.getTime()))return'';return`${fmtDate(iso)} ${String(d.getHours()).padStart(2,'0')}:${String(d.getMinutes()).padStart(2,'0')}`;}catch(e){return'';}}
-function d2i(iso){if(!iso)return'';try{const d=new Date(iso);if(isNaN(d.getTime()))return'';return`${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;}catch(e){return'';}}
-function dls(iso){if(!iso)return'none';try{const d=new Date(iso),n=new Date();if(d<n)return'past';if(d-n<7*864e5)return'soon';return'ok';}catch(e){return'none';}}
-function ptags(s){if(!s)return[];return String(s).split(',').map(x=>x.trim()).filter(Boolean);}
-function storeAll(arr){arr.forEach(i=>{store[i.ID]=i;});}
-function toast(msg){const el=document.getElementById('toast');el.textContent=msg;el.classList.add('on');clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove('on'),2600);}
-function updHdr(){const el=document.getElementById('hdr-cnt');const m={wants:allW.filter(w=>w.Done!=='TRUE').length,shopping:allS.filter(s=>s.Bought!=='TRUE').length,talking:allT.filter(t=>t.Talked!=='TRUE').length,todo:allTd.filter(t=>t.Done!=='TRUE').length,restaurant:allR.filter(r=>r.Visited!=='TRUE').length};const n=m[cur];el.textContent=(n&&n>0)?n+'件':'';}
-function collectTags(items){const s=new Set();items.forEach(i=>ptags(i.Tags).forEach(t=>s.add(t)));return[...s].sort();}
-function collectLocs(items){const s=new Set();items.forEach(i=>{if(i.Location)s.add(i.Location);});return[...s].sort();}
-
-// ================================================================
-// フィルター
-// ================================================================
-function applyFlt(items, tab){
-  const f=flt[tab]; let r=[...items];
-  if(f.tags&&f.tags.length>0)r=r.filter(i=>{const it=ptags(i.Tags);return f.tags.every(t=>it.includes(t));});
-  if(tab==='restaurant'){if(f.genre)r=r.filter(i=>i.Genre===f.genre);if(f.meal)r=r.filter(i=>i.MealType===f.meal||i.MealType==='どちらでも');if(f.loc)r=r.filter(i=>i.Location===f.loc);}
-  if(f.sort==='dl')r.sort((a,b)=>{const da=a.DeadlineDate||a.Deadline,db=b.DeadlineDate||b.Deadline;if(!da&&!db)return 0;if(!da)return 1;if(!db)return-1;return da<db?-1:da>db?1:0;});
-  return r;
-}
-function togTag(tab,tag){const f=flt[tab],i=f.tags.indexOf(tag);if(i>=0)f.tags.splice(i,1);else f.tags.push(tag);rpTab(tab);}
-function clrTags(tab){flt[tab].tags=[];rpTab(tab);}
-function setSort(tab,v){flt[tab].sort=v;rpTab(tab);}
-function setGenre(g){flt.restaurant.genre=flt.restaurant.genre===g?'':g;rpR();}
-function setMeal(m){flt.restaurant.meal=flt.restaurant.meal===m?'':m;rpR();}
-function setLoc(l){flt.restaurant.loc=flt.restaurant.loc===l?'':l;rpR();}
-function rpTab(tab){if(tab==='wants')rpW();else if(tab==='shopping')rpS();else if(tab==='talking')rpT();else if(tab==='todo')rpTd();else if(tab==='restaurant')rpR();}
-
-function fbarHtml(tab, activeItems){
-  const fromItems=collectTags(activeItems), fromSet=(tagSettings[tab]||[]);
-  const allT=[...new Set([...fromSet,...fromItems])].sort();
-  const f=flt[tab], sel=f.tags, hasD=tab==='wants'||tab==='todo';
-  const chips=allT.map(t=>`<button class="chip${sel.includes(t)?' on':''}" onclick="togTag('${tab}','${esc(t)}')">${esc(t)}</button>`).join('');
-  const sortSel=hasD?`<select class="sort-sel" onchange="setSort('${tab}',this.value)"><option value="def" ${f.sort==='def'?'selected':''}>追加順</option><option value="dl" ${f.sort==='dl'?'selected':''}>締め切り近い順</option></select>`:'';
-  const banner=sel.length>0?`<div class="filter-banner"><span>🔍 ${sel.map(t=>`「${esc(t)}」`).join(' AND ')}（${applyFlt(activeItems,tab).length}件）</span><button class="filter-clr" onclick="clrTags('${tab}')">クリア</button></div>`:'';
-  return `<div class="filter-bar"><div class="filter-row"><span class="filter-lbl">タグ（AND）</span>${chips}<button class="tag-mgr" onclick="openTagMgr('${tab}')">✏ タグ編集</button>${sortSel}</div>${banner}</div>`;
-}
-
-let rFltOpen=false;
-function togRFlt(){
-  rFltOpen=!rFltOpen;
-  const body=document.getElementById('r-flt-body');
-  if(body){body.classList.toggle('open',rFltOpen);body.classList.toggle('closed',!rFltOpen);}
-  const btn=document.getElementById('r-flt-btn');
-  if(btn){btn.classList.toggle('active',rFltOpen);btn.querySelector('.rarr').textContent=rFltOpen?'▲':'▼';}
-}
-function clrAllRFlt(){flt.restaurant.genre='';flt.restaurant.meal='';flt.restaurant.loc='';flt.restaurant.tags=[];rpR();}
-function rfbarHtml(activeItems){
-  const f=flt.restaurant;
-  const fromItems=collectTags(activeItems),fromSet=(tagSettings.restaurant||[]);
-  const allT=[...new Set([...fromSet,...fromItems])].sort();
-  const locs=collectLocs(activeItems);
-  const gC=['', ...REST_GENRES].map(g=>`<button class="chip${f.genre===g?' on':''}" onclick="setGenre('${esc(g)}')">${esc(g||'すべて')}</button>`).join('');
-  const mC=['', ...REST_MEALS].map(m=>`<button class="chip${f.meal===m?' on':''}" onclick="setMeal('${esc(m)}')">${esc(m||'すべて')}</button>`).join('');
-  const lC=locs.length?['', ...locs].map(l=>`<button class="chip${f.loc===l?' on':''}" onclick="setLoc('${esc(l)}')">${esc(l||'すべて')}</button>`).join(''):'';
-  const tC=allT.map(t=>`<button class="chip${f.tags.includes(t)?' on':''}" onclick="togTag('restaurant','${esc(t)}')">${esc(t)}</button>`).join('');
-  const parts=[];
-  if(f.genre)parts.push(f.genre);
-  if(f.meal)parts.push(f.meal);
-  if(f.loc)parts.push(f.loc);
-  f.tags.forEach(t=>parts.push(t));
-  const hasActive=parts.length>0;
-  const summary=parts.map(p=>esc(p)).join(' · ');
-  const btnCls='flt-toggle-btn'+(rFltOpen||hasActive?' active':'');
-  const clrBtn=hasActive?`<button class="filter-clr" style="flex-shrink:0;font-size:12px" onclick="clrAllRFlt()">クリア</button>`:'';
-  const mgrBtn=`<button class="tag-mgr" style="margin-left:auto;margin-right:12px" onclick="openTagMgr('restaurant')">✏ タグ編集</button>`;
-  return `<div class="filter-bar"><div class="flt-toggle-row"><button id="r-flt-btn" class="${btnCls}" onclick="togRFlt()">絞り込み <span class="rarr">${rFltOpen?'▲':'▼'}</span></button>${hasActive?`<span class="flt-active-summary">🔍 ${summary}</span>`:''}${clrBtn}${mgrBtn}</div><div id="r-flt-body" class="flt-expandable ${rFltOpen?'open':'closed'}"><div class="filter-row" style="margin-top:6px"><span class="filter-lbl">ジャンル</span>${gC}</div><div class="filter-row"><span class="filter-lbl">時間帯</span>${mC}</div>${locs.length?`<div class="filter-row"><span class="filter-lbl">エリア</span>${lC}</div>`:''}${allT.length?`<div class="filter-row"><span class="filter-lbl">タグ（AND）</span>${tC}</div>`:''}</div></div>`;
-}
-
-
-// ================================================================
-// カード HTML (やりたいこと・ご飯屋・完了タブ用)
-// ================================================================
-function wCard(w,a){
-  const tH=ptags(w.Tags).map(t=>`<span class="pill pill-tag">${esc(t)}</span>`).join('');
-  const ds=dls(w.DeadlineDate),dH=ds!=='none'?`<span class="pill pill-dl ${ds==='past'?'past':''}">${ds==='past'?'⚠ ':'🗓 '}${fmtDate(w.DeadlineDate)}まで</span>`:'';
-  const dAt=w.DoneAt?`<div class="card-date">✓ 達成: ${fmtDT(w.DoneAt)}</div>`:'';
-  const mo=w.Memo?`<div class="card-memo">${esc(w.Memo)}</div>`:'';
-  const lnk=w.URL?`<a class="card-link" href="${esc(w.URL)}" target="_blank">🔗 リンクを開く</a>`:'';
-  const acts=a?`<button class="btn-undo" onclick="doUndoneW('${w.ID}')">戻す</button><button class="btn-rereg" onclick="reW('${w.ID}')">再登録</button>`:`<button class="btn-done" onclick="doDoneW('${w.ID}')">✓ 完了</button>`;
-  return `<div class="card ${a?'archived':''}"><div class="card-title">${esc(w.Title)}</div><div class="card-meta">${dH}${tH}</div>${mo}${lnk}${dAt}<div class="card-actions"><button class="btn-edit" onclick="openById('${w.ID}')">編集</button>${acts}</div></div>`;
-}
-function sCard(s,a){
-  const tH=ptags(s.Tags).map(t=>`<span class="pill pill-tag">${esc(t)}</span>`).join('');
-  const cH=s.Category?`<span class="pill pill-cat">${esc(s.Category)}</span>`:'';
-  const mo=s.Memo?`<div class="card-memo">${esc(s.Memo)}</div>`:'';
-  const acts=a?`<button class="btn-undo" onclick="doUnbought('${s.ID}')">戻す</button><button class="btn-rereg" onclick="reS('${s.ID}')">再登録</button>`:`<button class="btn-done" onclick="doBought('${s.ID}')">✓ 購入済み</button>`;
-  return `<div class="card ${a?'archived':''}"><div class="card-title">${esc(s.Title)}</div><div class="card-meta">${cH}${tH}</div>${mo}<div class="card-actions"><button class="btn-edit" onclick="openById('${s.ID}')">編集</button>${acts}</div></div>`;
-}
-function tCard(t,a){
-  const cH=t.Category?`<span class="pill pill-cat">${esc(t.Category)}</span>`:'';
-  const mo=t.Memo?`<div class="card-memo">${esc(t.Memo)}</div>`:'';
-  const tAt=t.TalkedAt?`<div class="card-date">✓ 話した: ${fmtDT(t.TalkedAt)}</div>`:'';
-  const acts=a?`<button class="btn-undo" onclick="doUntalked('${t.ID}')">戻す</button><button class="btn-rereg" onclick="reTalk('${t.ID}')">再登録</button>`:`<button class="btn-done" onclick="doTalked('${t.ID}')">✓ 話した</button>`;
-  return `<div class="card ${a?'archived':''}"><div class="card-title">${esc(t.Title)}</div><div class="card-meta">${cH}</div>${mo}${tAt}<div class="card-actions"><button class="btn-edit" onclick="openById('${t.ID}')">編集</button>${acts}</div></div>`;
-}
-function tdCard(td,a){
-  const tH=ptags(td.Tags).map(t=>`<span class="pill pill-tag">${esc(t)}</span>`).join('');
-  const ds=dls(td.Deadline),dH=ds!=='none'?`<span class="pill pill-dl ${ds==='past'?'past':''}">${ds==='past'?'⚠ ':'🗓 '}${fmtDate(td.Deadline)}まで</span>`:'';
-  const dAt=td.DoneAt?`<div class="card-date">✓ 完了: ${fmtDT(td.DoneAt)}</div>`:'';
-  const mo=td.Memo?`<div class="card-memo">${esc(td.Memo)}</div>`:'';
-  const acts=a?`<button class="btn-undo" onclick="doTdUndo('${td.ID}')">戻す</button><button class="btn-rereg" onclick="reTd('${td.ID}')">再登録</button>`:`<button class="btn-done" onclick="doTdDone('${td.ID}')">✓ 完了</button>`;
-  return `<div class="card ${a?'archived':''}"><div class="card-title">${esc(td.Title)}</div><div class="card-meta">${dH}${tH}</div>${mo}${dAt}<div class="card-actions"><button class="btn-edit" onclick="openById('${td.ID}')">編集</button>${acts}</div></div>`;
-}
-function rCard(r,a){
-  const tH=ptags(r.Tags).map(t=>`<span class="pill pill-tag">${esc(t)}</span>`).join('');
-  const gH=r.Genre?`<span class="pill pill-cat">${esc(r.Genre)}</span>`:'';
-  const lH=r.Location?`<span class="pill pill-loc">📍${esc(r.Location)}</span>`:'';
-  const mH=r.MealType?`<span class="pill pill-meal">${esc(r.MealType)}</span>`:'';
-  const bH=r.Budget?`<span class="pill pill-bgt">💴${esc(r.Budget)}</span>`:'';
-  const mo=r.Memo?`<div class="card-memo">${esc(r.Memo)}</div>`:'';
-  const lnk=r.URL?`<a class="card-link" href="${esc(r.URL)}" target="_blank">🔗 リンクを開く</a>`:'';
-  const vAt=r.VisitedAt?`<div class="card-date">✓ 行った: ${fmtDT(r.VisitedAt)}</div>`:'';
-  const acts=a?`<button class="btn-undo" onclick="doUnvisit('${r.ID}')">戻す</button><button class="btn-rereg" onclick="reR('${r.ID}')">再登録</button>`:`<button class="btn-done" onclick="doVisit('${r.ID}')">✓ 行った</button>`;
-  return `<div class="card ${a?'archived':''}"><div class="card-title">${esc(r.Name)}</div><div class="card-meta">${gH}${lH}${mH}${bH}${tH}</div>${mo}${lnk}${vAt}<div class="card-actions"><button class="btn-edit" onclick="openById('${r.ID}')">編集</button>${acts}</div></div>`;
-}
-
-// ================================================================
-// MASONRY HTML (かんばん風・2列表記用)
-// ================================================================
-function renderMasonry(map, type) {
-  const keys = Object.keys(map).sort();
-  let html = '<div class="masonry">';
-  keys.forEach(k => {
-    html += `<div class="g-card"><div class="g-hd"><span class="g-dot">●</span>${esc(k)}</div><div class="g-list">`;
-    map[k].forEach(item => {
-      let doneFn = type==='s' ? `doBought('${item.ID}')` : type==='t' ? `doTalked('${item.ID}')` : `doTdDone('${item.ID}')`;
-      let title = item.Title;
-      let sub = '';
-      if(type==='t' && item.Memo) sub = `<div class="g-sub">📝 ${esc(item.Memo)}</div>`;
-      if(type==='td' && item.Deadline) { const ds=dls(item.Deadline); sub = `<div class="g-sub" style="color:${ds==='past'?'var(--red)':'inherit'}">${ds==='past'?'⚠ ':'🗓 '}${fmtDate(item.Deadline)}</div>`; }
-      if(type==='s' && item.Memo) sub = `<div class="g-sub">📝 ${esc(item.Memo)}</div>`;
-      html += `<div class="g-item"><div class="g-chk" onclick="${doneFn}"></div><div class="g-txt" onclick="openById('${item.ID}')">${esc(title)}${sub}</div></div>`;
-    });
-    html += `</div></div>`;
+// ===== 画面描画 (かんばん) =====
+function rpTab(tab) {
+  if(tab === 'archive') return rpA();
+  const items = data[tab].filter(i => {
+    if(tab==='wants') return i.Done !== 'TRUE';
+    if(tab==='shopping') return i.Bought !== 'TRUE';
+    if(tab==='talking') return i.Talked !== 'TRUE';
+    if(tab==='todo') return i.Done !== 'TRUE';
+    if(tab==='restaurant') return i.Visited !== 'TRUE';
   });
-  html += '</div>';
-  return html;
-}
 
-// ================================================================
-// パネル描画
-// ================================================================
-function rpW(){
-  const ac=allW.filter(w=>w.Done!=='TRUE'),fi=applyFlt(ac,'wants');
-  document.getElementById('p-wants').innerHTML = fbarHtml('wants',ac) + (fi.length?fi.map(w=>wCard(w,false)).join(''):`<div class="empty"><div class="empty-ico">⭐</div><div class="empty-txt">${ac.length?'条件に合うアイテムがありません':'やりたいことを追加しましょう'}</div></div>`);
-  updHdr();
-}
-// ★ 買い物（Masonryレイアウト）
-function rpS(){
-  const ac=allS.filter(s=>s.Bought!=='TRUE'), fi=applyFlt(ac,'shopping');
-  let h = fbarHtml('shopping',ac);
-  if(fi.length){
-    const map = {};
-    fi.forEach(i=>{ const tag = ptags(i.Tags)[0] || i.Category || 'その他'; if(!map[tag]) map[tag] = []; map[tag].push(i); });
-    h += renderMasonry(map, 's');
-  } else {
-    h += `<div class="empty"><div class="empty-ico">🛒</div><div class="empty-txt">${ac.length?'条件に合うアイテムがありません':'買い物リストは空です'}</div></div>`;
+  document.getElementById('hdr-cnt').textContent = items.length ? items.length+'件' : '';
+  const selTags = flt[tab];
+  const filtered = items.filter(i => selTags.every(t => pTags(i.Tags).includes(t)));
+
+  let h = `<div class="filter-bar"><div class="filter-row"><span class="filter-lbl">タグ絞り込み</span>`;
+  conf['t_'+tab].forEach(t => {
+    h += `<button class="chip ${selTags.includes(t)?'on':''}" onclick="togFlt('${tab}','${esc(t)}')">${esc(t)}</button>`;
+  });
+  h += `</div></div>`;
+
+  if(!filtered.length) {
+    document.getElementById('p-'+tab).innerHTML = h + `<div class="empty"><div class="empty-ico">📭</div><div>アイテムがありません</div></div>`;
+    return;
   }
-  document.getElementById('p-shopping').innerHTML = h; updHdr();
+
+  // カテゴリごとにグループ化 (かんばん)
+  const map = {};
+  filtered.forEach(i => {
+    let c = i.Category || (tab==='restaurant'?i.Location:'') || '未分類';
+    if(!map[c]) map[c] = [];
+    map[c].push(i);
+  });
+
+  h += '<div class="masonry">';
+  Object.keys(map).sort((a,b)=>a==='未分類'?1:b==='未分類'?-1:a.localeCompare(b)).forEach(c => {
+    h += `<div class="g-card"><div class="g-hd"><span class="g-dot">●</span>${esc(c)}</div>`;
+    map[c].forEach(i => {
+      const tags = pTags(i.Tags).map(t=>`<span class="g-tag">${esc(t)}</span>`).join('');
+      let sub = '';
+      if(i.Memo) sub += `<div class="g-sub">📝 ${esc(i.Memo)}</div>`;
+      if(i.DeadlineDate || i.Deadline) sub += `<div class="g-sub" style="color:var(--red)">🗓 ${fDate(i.DeadlineDate||i.Deadline)}まで</div>`;
+      
+      h += `<div class="g-item">
+              <div class="g-chk" onclick="markDone('${tab}','${i.ID}')"></div>
+              <div class="g-txt" onclick="openForm('${i.ID}')">${esc(i.Title||i.Name)}
+                <div class="g-tags">${tags}</div>
+                ${sub}
+              </div>
+            </div>`;
+    });
+    h += `</div>`;
+  });
+  h += '</div>';
+  document.getElementById('p-'+tab).innerHTML = h;
 }
-// ★ 話すこと（Masonryレイアウト）
-function rpT(){
-  const ac=allT.filter(t=>t.Talked!=='TRUE'), fi=applyFlt(ac,'talking');
-  let h = fbarHtml('talking',ac);
-  if(fi.length){
-    const map = {};
-    fi.forEach(i=>{ const tag = i.Category || '未分類'; if(!map[tag]) map[tag] = []; map[tag].push(i); });
-    h += renderMasonry(map, 't');
-  } else {
-    h += `<div class="empty"><div class="empty-ico">💬</div><div class="empty-txt">${ac.length?'条件に合うアイテムがありません':'話すことを追加しましょう'}</div></div>`;
+
+function togFlt(tab, tag) {
+  const i = flt[tab].indexOf(tag);
+  if(i>=0) flt[tab].splice(i,1); else flt[tab].push(tag);
+  rpTab(tab);
+}
+
+// ===== アーカイブ =====
+function rpA() {
+  let h = '';
+  const makeList = (tab, arr, title, act) => {
+    const doneItems = arr.filter(i=>i[act]==='TRUE');
+    if(!doneItems.length) return '';
+    return `<div class="sec-hd">${title}（${doneItems.length}件）</div>` + doneItems.map(i=>
+      `<div class="card">
+        <div class="card-title">${esc(i.Title||i.Name)}</div>
+        <div class="card-actions"><button class="btn-undo" onclick="markUndone('${tab}','${i.ID}')">↩ 未完了に戻す</button></div>
+      </div>`).join('');
+  };
+  h += makeList('wants', data.wants, '⭐ やりたいこと', 'Done');
+  h += makeList('shopping', data.shopping, '🛒 買い物', 'Bought');
+  h += makeList('talking', data.talking, '💬 話したこと', 'Talked');
+  h += makeList('todo', data.todo, '✅ Todo', 'Done');
+  h += makeList('restaurant', data.restaurant, '🍽 行ったお店', 'Visited');
+  document.getElementById('p-archive').innerHTML = h || '<div class="empty">完了したアイテムがありません</div>';
+}
+
+// ===== 状態変更 (完了/未完了) =====
+function markDone(tab, id) {
+  const item = store[id]; if(!item) return;
+  if(tab==='wants') item.Done = 'TRUE';
+  if(tab==='shopping') item.Bought = 'TRUE';
+  if(tab==='talking') item.Talked = 'TRUE';
+  if(tab==='todo') item.Done = 'TRUE';
+  if(tab==='restaurant') item.Visited = 'TRUE';
+  rpTab(tab); toast('✓ 完了しました');
+  const apiMap = {wants:'markWantDone', shopping:'markBought', talking:'markTalked', todo:'markTodoDone', restaurant:'markVisited'};
+  srv(apiMap[tab], {id});
+}
+function markUndone(tab, id) {
+  const item = store[id]; if(!item) return;
+  if(tab==='wants') item.Done = 'FALSE';
+  if(tab==='shopping') item.Bought = 'FALSE';
+  if(tab==='talking') item.Talked = 'FALSE';
+  if(tab==='todo') item.Done = 'FALSE';
+  if(tab==='restaurant') item.Visited = 'FALSE';
+  rpA(); toast('戻しました');
+  const apiMap = {wants:'markWantUndone', shopping:'markUnbought', talking:'markUntalked', todo:'markTodoUndone', restaurant:'markUnvisited'};
+  srv(apiMap[tab], {id});
+}
+
+// ===== フォーム UI (追加・編集) =====
+function openForm(id) {
+  const item = id ? store[id] : {};
+  let tab = cur === 'archive' ? 'wants' : cur;
+  if(id) {
+    if('Done' in item && 'DeadlineDate' in item) tab = 'wants';
+    else if('Bought' in item) tab = 'shopping';
+    else if('Talked' in item) tab = 'talking';
+    else if('Deadline' in item) tab = 'todo';
+    else if('Visited' in item) tab = 'restaurant';
   }
-  document.getElementById('p-talking').innerHTML = h; updHdr();
-}
-// ★ Todo（Masonryレイアウト）
-function rpTd(){
-  const ac=allTd.filter(t=>t.Done!=='TRUE'), fi=applyFlt(ac,'todo');
-  let h = fbarHtml('todo',ac);
-  if(fi.length){
-    const map = {};
-    fi.forEach(i=>{ const tag = ptags(i.Tags)[0] || '未分類'; if(!map[tag]) map[tag] = []; map[tag].push(i); });
-    h += renderMasonry(map, 'td');
+
+  const titleStr = id ? '編集' : '追加';
+  document.getElementById('sh-title').textContent = `${LABELS[tab]} を${titleStr}`;
+  
+  const cKey = 'c_'+tab, tKey = 't_'+tab;
+  const cats = conf[cKey] || [], tags = conf[tKey] || [];
+  const curCat = item.Category || item.Location || '';
+  const curTags = pTags(item.Tags);
+
+  // UIコンポーネント
+  const cHtml = cats.map(c=>`<button type="button" class="cat-btn ${c===curCat?'on':''}" onclick="selCat(this)">${esc(c)}</button>`).join('');
+  const tHtml = tags.map(t=>`<button type="button" class="tag-btn ${curTags.includes(t)?'on':''}" onclick="this.classList.toggle('on')">${esc(t)}</button>`).join('');
+
+  let h = `<input type="hidden" id="f-id" value="${esc(item.ID||'')}"><input type="hidden" id="f-tab" value="${tab}">`;
+  
+  const tTitle = tab==='restaurant' ? 'お店の名前' : 'タイトル';
+  const tPlcHd = tab==='shopping' && !id ? "例: 牛乳\n卵\n（改行で一括追加）" : "例: 入力してください";
+  
+  h += `<div class="fg"><div class="fg-header"><label>${tTitle} *</label></div>`;
+  if(tab === 'shopping' && !id) {
+    h += `<textarea id="f-title" class="fta" placeholder="${tPlcHd}"></textarea>`;
   } else {
-    h += `<div class="empty"><div class="empty-ico">✅</div><div class="empty-txt">${ac.length?'条件に合うアイテムがありません':'Todoを追加しましょう'}</div></div>`;
+    h += `<input id="f-title" class="fi" type="text" value="${esc(item.Title||item.Name||'')}" placeholder="${tPlcHd}">`;
   }
-  document.getElementById('p-todo').innerHTML = h; updHdr();
+  h += `</div>`;
+
+  h += `<div class="fg">
+          <div class="fg-header"><label>カテゴリ（列分け）</label><button class="lnk-edit" onclick="openMgr('${cKey}','カテゴリ')">✏ 編集</button></div>
+          <div class="btn-grid" id="f-cats">${cHtml}</div>
+        </div>`;
+  
+  h += `<div class="fg">
+          <div class="fg-header"><label>タグ（複数OK）</label><button class="lnk-edit" onclick="openMgr('${tKey}','タグ')">✏ 編集</button></div>
+          <div class="btn-grid" id="f-tags">${tHtml}</div>
+        </div>`;
+
+  if(tab === 'wants' || tab === 'todo') {
+    h += `<div class="fg"><div class="fg-header"><label>期限</label></div><input id="f-dl" class="fi" type="date" value="${d2i(item.DeadlineDate||item.Deadline)}"></div>`;
+  }
+  if(tab === 'wants' || tab === 'restaurant') {
+    h += `<div class="fg"><div class="fg-header"><label>リンク (URL)</label></div><input id="f-url" class="fi" type="url" value="${esc(item.URL||'')}"></div>`;
+  }
+  
+  h += `<div class="fg"><div class="fg-header"><label>メモ</label></div><textarea id="f-memo" class="fta">${esc(item.Memo||'')}</textarea></div>`;
+  
+  h += `<button class="btn-submit" onclick="submitForm()">${titleStr}する</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;
+  
+  document.getElementById('sh-body').innerHTML = h;
+  document.getElementById('ov').classList.add('on');
 }
-function rpR(){
-  const ac=allR.filter(r=>r.Visited!=='TRUE'),fi=applyFlt(ac,'restaurant');
-  document.getElementById('p-restaurant').innerHTML = rfbarHtml(ac) + (fi.length?fi.map(r=>rCard(r,false)).join(''):`<div class="empty"><div class="empty-ico">🍽</div><div class="empty-txt">${ac.length?'条件に合うお店がありません':'行きたいお店を追加しましょう'}</div></div>`);
-  updHdr();
-}
-function rpA(){
-  const dw=allW.filter(w=>w.Done==='TRUE'),ds=allS.filter(s=>s.Bought==='TRUE'),dt=allT.filter(t=>t.Talked==='TRUE'),dd=allTd.filter(t=>t.Done==='TRUE'),dr=allR.filter(r=>r.Visited==='TRUE');
-  let h='';
-  h+=`<div class="sec-hd">⭐ やりたいこと 達成済み（${dw.length}件）</div>`;h+=dw.length?dw.map(w=>wCard(w,true)).join(''):`<div class="empty" style="padding:12px 0"><div class="empty-txt">まだありません</div></div>`;
-  h+=`<div class="sec-hd">🛒 購入済み（${ds.length}件）</div>`;h+=ds.length?ds.map(s=>sCard(s,true)).join(''):`<div class="empty" style="padding:12px 0"><div class="empty-txt">まだありません</div></div>`;
-  h+=`<div class="sec-hd">💬 話した（${dt.length}件）</div>`;h+=dt.length?dt.map(t=>tCard(t,true)).join(''):`<div class="empty" style="padding:12px 0"><div class="empty-txt">まだありません</div></div>`;
-  h+=`<div class="sec-hd">✅ Todo 完了（${dd.length}件）</div>`;h+=dd.length?dd.map(t=>tdCard(t,true)).join(''):`<div class="empty" style="padding:12px 0"><div class="empty-txt">まだありません</div></div>`;
-  h+=`<div class="sec-hd">🍽 行ったお店（${dr.length}件）</div>`;h+=dr.length?dr.map(r=>rCard(r,true)).join(''):`<div class="empty" style="padding:12px 0"><div class="empty-txt">まだありません</div></div>`;
-  document.getElementById('p-archive').innerHTML=h;
+
+function selCat(btn) {
+  document.querySelectorAll('#f-cats .cat-btn').forEach(b => b.classList.remove('on'));
+  btn.classList.add('on');
 }
 
-// ================================================================
-// データ読み込み
-// ================================================================
-function errPanel(id){document.getElementById(id).innerHTML='<div class="empty"><div class="empty-txt" style="color:#E07070">読み込みに失敗しました</div></div>';}
-function ldW(){srv('getWants').then(d=>{allW=d||[];storeAll(allW);rpW();if(cur==='archive')rpA();saveCache();}).catch(()=>errPanel('p-wants'));}
-function ldS(){srv('getShopping').then(d=>{allS=d||[];storeAll(allS);rpS();if(cur==='archive')rpA();saveCache();}).catch(()=>errPanel('p-shopping'));}
-function ldT(){srv('getTalking').then(d=>{allT=d||[];storeAll(allT);rpT();if(cur==='archive')rpA();saveCache();}).catch(()=>errPanel('p-talking'));}
-function ldTd(){srv('getTodos').then(d=>{allTd=d||[];storeAll(allTd);rpTd();if(cur==='archive')rpA();saveCache();}).catch(()=>errPanel('p-todo'));}
-function ldR(){srv('getRestaurants').then(d=>{allR=d||[];storeAll(allR);rpR();if(cur==='archive')rpA();saveCache();}).catch(()=>errPanel('p-restaurant'));}
+function closeMod(){ document.getElementById('ov').classList.remove('on'); }
 
-// ================================================================
-// アクション
-// ================================================================
-function _optUpdate(item,patch,renderFn,apiCall,undoMsg){
-  const prev={};Object.keys(patch).forEach(k=>prev[k]=item[k]);
-  Object.assign(item,patch);renderFn();saveCache();
-  startSync();
-  apiCall().then(() => endSync()).catch(()=>{ endSync(); Object.assign(item,prev);renderFn();saveCache();toast(undoMsg);});
+// ===== フォーム送信 =====
+function submitForm() {
+  const id = document.getElementById('f-id').value;
+  const tab = document.getElementById('f-tab').value;
+  const title = document.getElementById('f-title').value.trim();
+  if(!title) return toast('タイトルを入力してください');
+
+  const catBtn = document.querySelector('#f-cats .cat-btn.on');
+  const cat = catBtn ? catBtn.textContent : '';
+  const tags = Array.from(document.querySelectorAll('#f-tags .tag-btn.on')).map(b=>b.textContent);
+  
+  const memo = document.getElementById('f-memo').value;
+  const dl = document.getElementById('f-dl') ? document.getElementById('f-dl').value : '';
+  const url = document.getElementById('f-url') ? document.getElementById('f-url').value : '';
+
+  const isEdit = !!id;
+  const isShopMulti = tab === 'shopping' && !isEdit && title.includes('\n');
+  
+  closeMod();
+  toast(isEdit ? '保存中...' : '追加中...');
+
+  if(isShopMulti) {
+    const titles = title.split('\n').map(t=>t.trim()).filter(Boolean);
+    Promise.all(titles.map(t => srv('addShopping', {title:t, category:cat, tags:tags, memo:memo})))
+      .then(()=>loadData()).catch(()=>toast('エラーが発生しました'));
+    return;
+  }
+
+  const payload = { id, category: cat, tags: tags, memo: memo };
+  if(tab==='wants') { payload.title = title; payload.deadlineDate = dl; payload.url = url; }
+  else if(tab==='shopping') { payload.title = title; }
+  else if(tab==='talking') { payload.title = title; }
+  else if(tab==='todo') { payload.title = title; payload.deadline = dl; }
+  else if(tab==='restaurant') { payload.name = title; payload.location = cat; payload.url = url; }
+
+  const apiMap = {
+    wants: isEdit ? 'updateWant' : 'addWant',
+    shopping: isEdit ? 'updateShopping' : 'addShopping',
+    talking: isEdit ? 'updateTalking' : 'addTalking',
+    todo: isEdit ? 'updateTodo' : 'addTodo',
+    restaurant: isEdit ? 'updateRestaurant' : 'addRestaurant'
+  };
+
+  srv(apiMap[tab], payload).then(()=>{ toast(isEdit?'保存しました':'追加しました'); loadData(); }).catch(()=>toast('エラー'));
 }
-function _rp2(renderFn){renderFn();if(cur==='archive')rpA();}
 
-function doDoneW(id){const w=store[id];if(!w)return;toast('✓ 完了にしました');_optUpdate(w,{Done:'TRUE',DoneAt:new Date().toISOString()},()=>_rp2(rpW),()=>srv('markWantDone',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doUndoneW(id){const w=store[id];if(!w)return;toast('未完了に戻しました');_optUpdate(w,{Done:'FALSE',DoneAt:''},()=>_rp2(rpW),()=>srv('markWantUndone',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doBought(id){const s=store[id];if(!s)return;toast('✓ 購入済みにしました');_optUpdate(s,{Bought:'TRUE'},()=>_rp2(rpS),()=>srv('markBought',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doUnbought(id){const s=store[id];if(!s)return;toast('未購入に戻しました');_optUpdate(s,{Bought:'FALSE'},()=>_rp2(rpS),()=>srv('markUnbought',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doTalked(id){const t=store[id];if(!t)return;toast('✓ 話したにしました');_optUpdate(t,{Talked:'TRUE',TalkedAt:new Date().toISOString()},()=>_rp2(rpT),()=>srv('markTalked',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doUntalked(id){const t=store[id];if(!t)return;toast('未処理に戻しました');_optUpdate(t,{Talked:'FALSE',TalkedAt:''},()=>_rp2(rpT),()=>srv('markUntalked',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doTdDone(id){const t=store[id];if(!t)return;toast('✓ 完了にしました');_optUpdate(t,{Done:'TRUE',DoneAt:new Date().toISOString()},()=>_rp2(rpTd),()=>srv('markTodoDone',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doTdUndo(id){const t=store[id];if(!t)return;toast('未完了に戻しました');_optUpdate(t,{Done:'FALSE',DoneAt:''},()=>_rp2(rpTd),()=>srv('markTodoUndone',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doVisit(id){const r=store[id];if(!r)return;toast('✓ 行ったにしました');_optUpdate(r,{Visited:'TRUE',VisitedAt:new Date().toISOString()},()=>_rp2(rpR),()=>srv('markVisited',{id}),'❌ 同期失敗。再読み込みしてください');}
-function doUnvisit(id){const r=store[id];if(!r)return;toast('未訪問に戻しました');_optUpdate(r,{Visited:'FALSE',VisitedAt:''},()=>_rp2(rpR),()=>srv('markUnvisited',{id}),'❌ 同期失敗。再読み込みしてください');}
+// ===== カテゴリ・タグ管理 UI =====
+let editKey = '';
+function openMgr(key, typeName) {
+  editKey = key;
+  document.getElementById('sh-title').textContent = `${typeName}を編集`;
+  renderMgr();
+}
+function renderMgr() {
+  const items = conf[editKey] || [];
+  const pills = items.map((t,i) => `<span class="mgr-pill">${esc(t)} <button class="mgr-del" onclick="rmMgr(${i})">×</button></span>`).join('');
+  let h = `<div class="mgr-list">${pills||'<span style="color:#aaa;font-size:13px">まだありません</span>'}</div>
+           <div class="add-row">
+             <input id="mgr-in" class="fi" type="text" placeholder="新しい項目" onkeydown="if(event.key==='Enter')addMgr()">
+             <button class="cat-btn" style="background:var(--blue);color:#fff;border:none" onclick="addMgr()">追加</button>
+           </div>
+           <button class="btn-submit" onclick="saveMgr()">保存して戻る</button>`;
+  document.getElementById('sh-body').innerHTML = h;
+}
+function addMgr() {
+  const v = document.getElementById('mgr-in').value.trim();
+  if(!v || conf[editKey].includes(v)) return;
+  conf[editKey].push(v);
+  renderMgr();
+}
+function rmMgr(i) { conf[editKey].splice(i,1); renderMgr(); }
+function saveMgr() {
+  toast('設定を保存中...');
+  srv('saveTagSettings', conf).then(() => {
+    toast('保存しました');
+    const parts = editKey.split('_');
+    openForm(document.getElementById('f-id') ? document.getElementById('f-id').value : null); // 元のフォームに戻る
+    rpTab(parts[1]); // 一覧も更新
+  });
+}
 
-function reW(id){const w=store[id];if(!w)return;srv('addWant',{title:w.Title,deadlineDate:d2i(w.DeadlineDate),tags:ptags(w.Tags),url:w.URL||'',memo:w.Memo}).then(()=>{ldW();toast('✓ 再登録しました');});}
-function reS(id){const s=store[id];if(!s)return;srv('addShopping',{title:s.Title,category:s.Category,tags:ptags(s.Tags),memo:s.Memo}).then(()=>{ldS();toast('✓ 再登録しました');});}
-function reTalk(id){const t=store[id];if(!t)return;srv('addTalking',{title:t.Title,category:t.Category,memo:t.Memo}).then(()=>{ldT();toast('✓ 再登録しました');});}
-function reTd(id){const t=store[id];if(!t)return;srv('addTodo',{title:t.Title,deadline:'',tags:ptags(t.Tags),memo:t.Memo}).then(()=>{ldTd();toast('✓ 再登録しました（期限リセット）');});}
-function reR(id){const r=store[id];if(!r)return;srv('addRestaurant',{name:r.Name,genre:r.Genre,location:r.Location,mealType:r.MealType,budget:r.Budget,tags:ptags(r.Tags),url:r.URL||'',memo:r.Memo}).then(()=>{ldR();toast('✓ 再登録しました');});}
-
-// ================================================================
-// タブ切り替え
-// ================================================================
-function sw(tab){
-  cur=tab;
+// ===== 初期化 =====
+function sw(tab) {
+  cur = tab;
   document.querySelectorAll('.panel').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.tab').forEach(b=>b.classList.remove('on'));
   document.getElementById('p-'+tab).classList.add('on');
   document.querySelectorAll('.tab')[TABS.indexOf(tab)].classList.add('on');
   document.getElementById('fab').classList.toggle('hide', tab==='archive');
-  if(tab==='archive')rpA();
-  updHdr();
+  rpTab(tab);
 }
 
-// ================================================================
-// モーダル
-// ================================================================
-function openById(id){openModal(store[id]||null);}
-function openModal(item){
-  const titleEl=document.getElementById('sh-title'), bodyEl=document.getElementById('sh-body');
-  const isEdit=!!item; let type=cur==='archive'?'':cur;
-  if(isEdit){if('DeadlineDate' in item)type='wants';else if('Bought' in item)type='shopping';else if('Talked' in item)type='talking';else if('Deadline' in item)type='todo';else if('Visited' in item)type='restaurant';}
-  if(type==='wants')      {titleEl.textContent=isEdit?'やりたいことを編集':'やりたいことを追加';bodyEl.innerHTML=wForm(item);}
-  else if(type==='shopping')   {titleEl.textContent=isEdit?'買い物を編集':'買い物を追加';bodyEl.innerHTML=sForm(item);}
-  else if(type==='talking')    {titleEl.textContent=isEdit?'話すことを編集':'話すことを追加';bodyEl.innerHTML=tForm(item);}
-  else if(type==='todo')       {titleEl.textContent=isEdit?'Todoを編集':'Todoを追加';bodyEl.innerHTML=tdForm(item);}
-  else if(type==='restaurant') {titleEl.textContent=isEdit?'お店を編集':'行きたいお店を追加';bodyEl.innerHTML=rForm(item);}
-  else return;
-  document.getElementById('ov').classList.add('on');
-  setTimeout(()=>{const inp=document.getElementById('fi-title')||document.getElementById('fi-name');if(inp)inp.focus();},200);
-}
-function closeMod(){document.getElementById('ov').classList.remove('on');}
-
-// ================================================================
-// タグ管理
-// ================================================================
-let tmgr={tab:'',tags:[]};
-function openTagMgr(tab){
-  const labels={wants:'やりたいこと',shopping:'買い物',talking:'話すこと',todo:'Todo',restaurant:'ご飯屋'};
-  document.getElementById('sh-title').textContent=tab==='restaurant'?'ご飯屋のタグ・エリアを管理':`${labels[tab]||tab} のタグを管理`;
-  if(tab==='restaurant'){document.getElementById('sh-body').innerHTML=rTagMgrHtml();}
-  else{tmgr={tab,tags:[...(tagSettings[tab]||[])]};document.getElementById('sh-body').innerHTML=tagMgrHtml(tab);}
-  document.getElementById('ov').classList.add('on');
-}
-function tagMgrHtml(tab){return `<div class="tmgr-sec"><div class="tmgr-list" id="tmgr-list">${tmgrPills(tmgr.tags)}</div><div class="tag-add-row"><input id="tmgr-fi" class="tag-fi" type="text" placeholder="新しいタグを追加" maxlength="30" onkeydown="if(event.key==='Enter'){event.preventDefault();tmgrAdd();}"><button class="tag-add-btn" onclick="tmgrAdd()">追加</button></div></div><button class="btn-submit" onclick="tmgrSave('${tab}')">保存する</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;}
-function rTagMgrHtml(){return `<div class="tmgr-sec"><div class="tmgr-sec-title">🏷 タグ</div><div class="tmgr-list" id="tmgr-rlist">${tmgrPillsFor('restaurant')}</div><div class="tag-add-row"><input id="tmgr-rfi" class="tag-fi" type="text" placeholder="タグを追加" maxlength="30" onkeydown="if(event.key==='Enter'){event.preventDefault();tmgrRAdd('tags');}"><button class="tag-add-btn" onclick="tmgrRAdd('tags')">追加</button></div></div><div class="tmgr-sec"><div class="tmgr-sec-title">📍 エリア</div><div class="tmgr-list" id="tmgr-llist">${tmgrPillsFor('restaurantLocations')}</div><div class="tag-add-row"><input id="tmgr-lfi" class="tag-fi" type="text" placeholder="エリア追加（例: 渋谷）" maxlength="30" onkeydown="if(event.key==='Enter'){event.preventDefault();tmgrRAdd('locs');}"><button class="tag-add-btn" onclick="tmgrRAdd('locs')">追加</button></div></div><button class="btn-submit" onclick="tmgrRSave()">保存する</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;}
-function tmgrPills(tags){if(!tags.length)return'<span class="tmgr-empty">タグがありません</span>';return tags.map((t,i)=>`<span class="tmgr-pill">${esc(t)}<button class="tmgr-del" onclick="tmgrRem(${i})">×</button></span>`).join('');}
-function tmgrPillsFor(key){const tags=tagSettings[key]||[];if(!tags.length)return'<span class="tmgr-empty">まだありません</span>';return tags.map((t,i)=>`<span class="tmgr-pill">${esc(t)}<button class="tmgr-del" onclick="tmgrRemFrom('${key}',${i})">×</button></span>`).join('');}
-function tmgrRem(i){tmgr.tags.splice(i,1);const el=document.getElementById('tmgr-list');if(el)el.innerHTML=tmgrPills(tmgr.tags);}
-function tmgrAdd(){const inp=document.getElementById('tmgr-fi');if(!inp)return;const v=inp.value.trim();if(!v||tmgr.tags.includes(v)){inp.value='';return;}tmgr.tags.push(v);const el=document.getElementById('tmgr-list');if(el)el.innerHTML=tmgrPills(tmgr.tags);inp.value='';}
-function tmgrSave(tab){const d={};d[tab]=[...tmgr.tags];srv('saveTagSettings',d).then(()=>{tagSettings[tab]=[...tmgr.tags];closeMod();rpTab(tab);toast('✓ タグを保存しました');}).catch(()=>toast('保存に失敗しました'));}
-function tmgrRemFrom(key,i){tagSettings[key]=[...(tagSettings[key]||[])];tagSettings[key].splice(i,1);const lId=key==='restaurantLocations'?'tmgr-llist':'tmgr-rlist';const el=document.getElementById(lId);if(el)el.innerHTML=tmgrPillsFor(key);}
-function tmgrRAdd(type){const isL=type==='locs';const iId=isL?'tmgr-lfi':'tmgr-rfi';const key=isL?'restaurantLocations':'restaurant';const lId=isL?'tmgr-llist':'tmgr-rlist';const inp=document.getElementById(iId);if(!inp)return;const v=inp.value.trim();if(!v)return;tagSettings[key]=[...(tagSettings[key]||[])];if(tagSettings[key].includes(v)){inp.value='';return;}tagSettings[key].push(v);const el=document.getElementById(lId);if(el)el.innerHTML=tmgrPillsFor(key);inp.value='';}
-function tmgrRSave(){srv('saveTagSettings',{restaurant:tagSettings.restaurant,restaurantLocations:tagSettings.restaurantLocations}).then(()=>{closeMod();rpR();toast('✓ タグ・エリアを保存しました');}).catch(()=>toast('保存に失敗しました'));}
-
-// ================================================================
-// フォーム内タグUI
-// ================================================================
-function tagSec(presets, existing){
-  const ex=existing||[], custom=ex.filter(t=>!presets.includes(t));
-  const pH=presets.map(t=>`<button type="button" class="tag-opt${ex.includes(t)?' on':''}" onclick="this.classList.toggle('on')">${esc(t)}</button>`).join('');
-  const cP=custom.map(t=>cPill(t)).join('');
-  return `<div class="tag-grid" id="tag-presets">${pH}</div><div class="custom-tags" id="tag-custom">${cP}</div><div class="tag-add-row"><input id="tag-fi" class="tag-fi" type="text" placeholder="自由入力タグ（Enterで追加）" maxlength="30" onkeydown="if(event.key==='Enter'){event.preventDefault();addCustTag();}"><button class="tag-add-btn" onclick="addCustTag()">追加</button></div>`;
-}
-function cPill(tag){return `<span class="custom-pill" data-tag="${esc(tag)}">${esc(tag)}<button type="button" class="custom-del" onclick="this.closest('.custom-pill').remove()">×</button></span>`;}
-function addCustTag(){const inp=document.getElementById('tag-fi');if(!inp)return;const v=inp.value.trim();if(!v)return;for(const b of document.querySelectorAll('#tag-presets .tag-opt')){if(b.textContent.trim()===v){b.classList.add('on');inp.value='';return;}}const area=document.getElementById('tag-custom');const ex=Array.from(area.querySelectorAll('.custom-pill')).map(e=>e.dataset.tag);if(ex.includes(v)){inp.value='';return;}area.insertAdjacentHTML('beforeend',cPill(v));inp.value='';}
-function getSelTags(){const p=Array.from(document.querySelectorAll('#tag-presets .tag-opt.on')).map(e=>e.textContent.trim());const c=Array.from(document.querySelectorAll('#tag-custom .custom-pill')).map(e=>e.dataset.tag);return[...p,...c];}
-function locSec(existing){const locs=tagSettings.restaurantLocations||[];return `<div class="tag-grid" id="loc-chips">${locs.map(l=>`<button type="button" class="loc-opt${existing===l?' on':''}" onclick="selLoc(this)">${esc(l)}</button>`).join('')}</div>`;}
-function selLoc(btn){const wasOn=btn.classList.contains('on');document.querySelectorAll('#loc-chips .loc-opt').forEach(b=>b.classList.remove('on'));if(!wasOn)btn.classList.add('on');}
-function getSelLoc(){const s=document.querySelector('#loc-chips .loc-opt.on');return s?s.textContent.trim():'';}
-
-// ================================================================
-// フォームHTML
-// ================================================================
-function wForm(item){const e=item||{},idH=item?`<input type="hidden" id="fi-id" value="${esc(e.ID)}">`:'',fn=item?'subW(true)':'subW(false)';return `${idH}<div class="fg"><label>やりたいこと *</label><input id="fi-title" class="fi" type="text" value="${esc(e.Title||'')}" placeholder="例: ○○展に行く" maxlength="200"></div><div class="fg"><label>期限・開催終了日</label><input id="fi-dl" class="fi" type="date" value="${d2i(e.DeadlineDate)}"></div><div class="fg"><label>タグ</label>${tagSec(tagSettings.wants,ptags(e.Tags))}</div><div class="fg"><label>リンク（URL）</label><input id="fi-url" class="fi" type="url" value="${esc(e.URL||'')}" placeholder="https://（公式・食べログなど）"></div><div class="fg"><label>メモ</label><textarea id="fi-memo" class="fta" placeholder="場所・メモなど" maxlength="500">${esc(e.Memo||'')}</textarea></div><button id="btn-sub" class="btn-submit" onclick="${fn}">${item?'保存する':'追加する'}</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;}
-
-function sForm(item){
-  const e=item||{}, idH=item?`<input type="hidden" id="fi-id" value="${esc(e.ID)}">`:'', fn=item?'subS(true)':'subS(false)';
-  const co=(['', ...SHOP_CATS]).map(c=>`<option value="${c}" ${(e.Category||'')==c?'selected':''}>${c||'選択しない'}</option>`).join('');
-  const titleInp = item 
-    ? `<input id="fi-title" class="fi" type="text" value="${esc(e.Title||'')}" placeholder="例: シャンプー" maxlength="200">`
-    : `<textarea id="fi-title" class="fta" placeholder="例: 牛乳&#10;卵&#10;洗剤&#10;（改行して一括追加できます）" style="min-height:90px;"></textarea>`;
-  return `${idH}<div class="fg"><label>品目 *</label>${titleInp}</div><div class="fg"><label>カテゴリ</label><select id="fi-cat" class="fsel">${co}</select></div><div class="fg"><label>タグ</label>${tagSec(tagSettings.shopping,ptags(e.Tags))}</div><div class="fg"><label>メモ</label><input id="fi-memo" class="fi" type="text" value="${esc(e.Memo||'')}" placeholder="数量・ブランドなど" maxlength="200"></div><button id="btn-sub" class="btn-submit" onclick="${fn}">${item?'保存する':'追加する'}</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;
-}
-
-function tForm(item){const e=item||{},idH=item?`<input type="hidden" id="fi-id" value="${esc(e.ID)}">`:'',fn=item?'subT(true)':'subT(false)';const co=(['', ...TALK_CATS]).map(c=>`<option value="${c}" ${(e.Category||'')==c?'selected':''}>${c||'選択しない'}</option>`).join('');return `${idH}<div class="fg"><label>話したいこと *</label><input id="fi-title" class="fi" type="text" value="${esc(e.Title||'')}" placeholder="例: 旅行の日程について" maxlength="200"></div><div class="fg"><label>カテゴリ</label><select id="fi-cat" class="fsel">${co}</select></div><div class="fg"><label>メモ</label><textarea id="fi-memo" class="fta" placeholder="補足など" maxlength="300">${esc(e.Memo||'')}</textarea></div><button id="btn-sub" class="btn-submit" onclick="${fn}">${item?'保存する':'追加する'}</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;}
-function tdForm(item){const e=item||{},idH=item?`<input type="hidden" id="fi-id" value="${esc(e.ID)}">`:'',fn=item?'subTd(true)':'subTd(false)';return `${idH}<div class="fg"><label>やること *</label><input id="fi-title" class="fi" type="text" value="${esc(e.Title||'')}" placeholder="例: 市役所で手続き" maxlength="200"></div><div class="fg"><label>期限</label><input id="fi-dl" class="fi" type="date" value="${d2i(e.Deadline)}"></div><div class="fg"><label>タグ</label>${tagSec(tagSettings.todo,ptags(e.Tags))}</div><div class="fg"><label>メモ</label><textarea id="fi-memo" class="fta" placeholder="補足など" maxlength="300">${esc(e.Memo||'')}</textarea></div><button id="btn-sub" class="btn-submit" onclick="${fn}">${item?'保存する':'追加する'}</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;}
-function rForm(item){const e=item||{},idH=item?`<input type="hidden" id="fi-id" value="${esc(e.ID)}">`:'',fn=item?'subR(true)':'subR(false)';const go=(['', ...REST_GENRES]).map(g=>`<option value="${g}" ${(e.Genre||'')==g?'selected':''}>${g||'選択しない'}</option>`).join('');const mo=(['', ...REST_MEALS]).map(m=>`<option value="${m}" ${(e.MealType||'')==m?'selected':''}>${m||'選択しない'}</option>`).join('');const bo=(['', ...REST_BUDGETS]).map(b=>`<option value="${b}" ${(e.Budget||'')==b?'selected':''}>${b||'選択しない'}</option>`).join('');const hL=(tagSettings.restaurantLocations||[]).length>0;return `${idH}<div class="fg"><label>お店の名前 *</label><input id="fi-name" class="fi" type="text" value="${esc(e.Name||'')}" placeholder="例: ○○食堂" maxlength="100"></div><div class="fg"><label>ジャンル</label><select id="fi-genre" class="fsel">${go}</select></div><div class="fg"><div class="fg-row"><label>エリア（場所）</label><button type="button" class="lnk-edit" onclick="openTagMgr('restaurant')">エリアを管理</button></div>${hL?locSec(e.Location||''):`<p style="font-size:14px;color:var(--text-hint);margin-top:6px">「タグ編集」からエリアを追加してください</p>`}</div><div class="fg"><label>ランチ / ディナー</label><select id="fi-meal" class="fsel">${mo}</select></div><div class="fg"><label>予算（目安）</label><select id="fi-bgt" class="fsel">${bo}</select></div><div class="fg"><label>タグ</label>${tagSec(tagSettings.restaurant,ptags(e.Tags))}</div><div class="fg"><label>リンク（URL）</label><input id="fi-url" class="fi" type="url" value="${esc(e.URL||'')}" placeholder="https://（食べログ・Googleマップなど）"></div><div class="fg"><label>メモ</label><textarea id="fi-memo" class="fta" placeholder="予約方法・メモなど" maxlength="400">${esc(e.Memo||'')}</textarea></div><button id="btn-sub" class="btn-submit" onclick="${fn}">${item?'保存する':'追加する'}</button><button class="btn-cancel" onclick="closeMod()">キャンセル</button>`;}
-
-// ================================================================
-// フォーム送信
-// ================================================================
-function setSub(on){const b=document.getElementById('btn-sub');if(!b)return;b.disabled=on;if(on)b.textContent='処理中…';}
-function gv(id){const el=document.getElementById(id);return el?(el.value||'').trim():'';}
-function subW(isEdit){const title=gv('fi-title');if(!title){toast('タイトルを入力してください');return;}const d={title,deadlineDate:gv('fi-dl'),tags:getSelTags(),url:gv('fi-url'),memo:gv('fi-memo')};if(isEdit)d.id=gv('fi-id');setSub(true);srv(isEdit?'updateWant':'addWant',d).then(()=>{closeMod();ldW();toast(isEdit?'✓ 保存しました':'✓ 追加しました');}).catch(()=>{toast('エラー');setSub(false);});}
-
-function subS(isEdit){
-  const titleStr = gv('fi-title');
-  if(!titleStr){toast('品目を入力してください');return;}
-
-  const cat = gv('fi-cat'), tags = getSelTags(), memo = gv('fi-memo');
-
-  if(isEdit){
-    const d = {id:gv('fi-id'), title:titleStr, category:cat, tags:tags, memo:memo};
-    const target = store[d.id];
-    if(target) { target.Title=d.title; target.Category=d.category; target.Tags=d.tags.join(','); target.Memo=d.memo; rpS(); }
-    closeMod();
-    startSync();
-    srv('updateShopping', d).then(() => { endSync(); ldS(); toast('✓ 保存しました'); }).catch(() => { endSync(); toast('エラー'); ldS(); });
-    return;
-  }
-
-  const titles = titleStr.split('\n').map(t => t.trim()).filter(Boolean);
-  titles.forEach((t, i) => {
-    const tempItem = { ID: 'temp_'+Date.now()+'_'+i, Title: t, Category: cat, Tags: tags.join(','), Memo: memo };
-    allS.push(tempItem);
-    store[tempItem.ID] = tempItem;
+function loadData() {
+  Promise.all([
+    srv('getTagSettings'),
+    srv('getWants'), srv('getShopping'), srv('getTalking'), srv('getTodos'), srv('getRestaurants')
+  ]).then(([sett, w, s, ta, td, r]) => {
+    if(sett && Object.keys(sett).length > 0) {
+      // 互換性吸収 (古い設定を新しい設定キーにマッピング)
+      conf.t_wants = sett.wants || sett.t_wants || conf.t_wants;
+      conf.c_restaurant = sett.restaurantLocations || sett.c_restaurant || conf.c_restaurant;
+      conf.t_restaurant = sett.restaurant || sett.t_restaurant || conf.t_restaurant;
+      conf.t_shopping = sett.shopping || sett.t_shopping || conf.t_shopping;
+      conf.t_talking = sett.talking || sett.t_talking || conf.t_talking;
+      conf.t_todo = sett.todo || sett.t_todo || conf.t_todo;
+      // 新しい独自カテゴリがあれば上書き
+      Object.keys(conf).forEach(k => { if(sett[k]) conf[k] = sett[k]; });
+    }
+    
+    data.wants = w||[]; data.shopping = s||[]; data.talking = ta||[]; data.todo = td||[]; data.restaurant = r||[];
+    [data.wants, data.shopping, data.talking, data.todo, data.restaurant].forEach(arr => arr.forEach(i=>store[i.ID]=i));
+    
+    rpTab(cur);
   });
-  rpS();
-  closeMod();
-
-  if (titles.length > 1) toast(`${titles.length}件を追加しています...`);
-  startSync();
-  Promise.all(titles.map(t => srv('addShopping', {title: t, category: cat, tags: tags, memo: memo})))
-    .then(() => { endSync(); ldS(); toast(`✓ ${titles.length}件 追加しました`); })
-    .catch(() => { endSync(); toast('一部追加に失敗しました。再読み込みします。'); ldS(); });
 }
 
-function subT(isEdit){const title=gv('fi-title');if(!title){toast('内容を入力してください');return;}const d={title,category:gv('fi-cat'),memo:gv('fi-memo')};if(isEdit)d.id=gv('fi-id');setSub(true);srv(isEdit?'updateTalking':'addTalking',d).then(()=>{closeMod();ldT();toast(isEdit?'✓ 保存しました':'✓ 追加しました');}).catch(()=>{toast('エラー');setSub(false);});}
-function subTd(isEdit){const title=gv('fi-title');if(!title){toast('やることを入力してください');return;}const d={title,deadline:gv('fi-dl'),tags:getSelTags(),memo:gv('fi-memo')};if(isEdit)d.id=gv('fi-id');setSub(true);srv(isEdit?'updateTodo':'addTodo',d).then(()=>{closeMod();ldTd();toast(isEdit?'✓ 保存しました':'✓ 追加しました');}).catch(()=>{toast('エラー');setSub(false);});}
-function subR(isEdit){const name=gv('fi-name');if(!name){toast('お店の名前を入力してください');return;}const d={name,genre:gv('fi-genre'),location:getSelLoc(),mealType:gv('fi-meal'),budget:gv('fi-bgt'),tags:getSelTags(),url:gv('fi-url'),memo:gv('fi-memo')};if(isEdit)d.id=gv('fi-id');setSub(true);srv(isEdit?'updateRestaurant':'addRestaurant',d).then(()=>{closeMod();ldR();toast(isEdit?'✓ 保存しました':'✓ 追加しました');}).catch(()=>{toast('エラー');setSub(false);});}
-
-// ================================================================
-// 初期化
-// ================================================================
-const CACHE_KEY = 'list_c_v3';
-function saveCache(){try{localStorage.setItem(CACHE_KEY,JSON.stringify({w:allW,s:allS,t:allT,td:allTd,r:allR}));}catch(e){}}
-function loadCache(){try{const c=JSON.parse(localStorage.getItem(CACHE_KEY)||'{}');if(!c.w||!c.w.length)return false;allW=c.w;allS=c.s;allT=c.t;allTd=c.td;allR=c.r;[allW,allS,allT,allTd,allR].forEach(storeAll);rpW();rpS();rpT();rpTd();rpR();return true;}catch(e){return false;}}
-
-function setupPWA(){
-  try{
-    const cv=document.createElement('canvas');cv.width=180;cv.height=180;const x=cv.getContext('2d');
-    const rr=38;x.beginPath();x.moveTo(rr,0);x.lineTo(180-rr,0);x.quadraticCurveTo(180,0,180,rr);
-    x.lineTo(180,180-rr);x.quadraticCurveTo(180,180,180-rr,180);
-    x.lineTo(rr,180);x.quadraticCurveTo(0,180,0,180-rr);
-    x.lineTo(0,rr);x.quadraticCurveTo(0,0,rr,0);x.closePath();x.fillStyle='#4A8FD4';x.fill();
-    function heart(cx,cy,s){x.beginPath();x.moveTo(cx,cy+s*0.35);x.bezierCurveTo(cx,cy+s*0.1,cx-s,cy+s*0.1,cx-s,cy+s*0.5);x.bezierCurveTo(cx-s,cy+s,cx,cy+s*1.4,cx,cy+s*1.5);x.bezierCurveTo(cx,cy+s*1.4,cx+s,cy+s,cx+s,cy+s*0.5);x.bezierCurveTo(cx+s,cy+s*0.1,cx,cy+s*0.1,cx,cy+s*0.35);x.closePath();x.fill();}
-    x.fillStyle='rgba(255,255,255,0.95)';heart(70,46,26);heart(110,46,26);
-    x.fillStyle='rgba(255,255,255,0.9)';x.font='bold 20px -apple-system,Helvetica,sans-serif';x.textAlign='center';x.textBaseline='top';x.fillText('2人のリスト',90,114);
-    const iconURL=cv.toDataURL('image/png');
-    let atl=document.querySelector("link[rel='apple-touch-icon']");if(!atl){atl=document.createElement('link');atl.rel='apple-touch-icon';document.head.appendChild(atl);}atl.href=iconURL;
-    const mf={name:'2人のリスト 💑',short_name:'2人のリスト',start_url:'./',display:'standalone',orientation:'portrait-primary',background_color:'#F2F1EE',theme_color:'#4A8FD4',icons:[{src:iconURL,sizes:'180x180',type:'image/png'},{src:iconURL,sizes:'192x192',type:'image/png'},{src:iconURL,sizes:'512x512',type:'image/png'}]};
-    const blob=new Blob([JSON.stringify(mf)],{type:'application/manifest+json'});
-    const mfLink=document.getElementById('pwa-manifest');if(mfLink)mfLink.href=URL.createObjectURL(blob);
-  }catch(e){}
-}
-
-function init(){
-  if(!SCRIPT_URL||SCRIPT_URL.includes('★')){
-    ['p-wants','p-shopping','p-talking','p-todo','p-restaurant'].forEach(id=>{
-      document.getElementById(id).innerHTML='<div class="empty"><div class="empty-ico">⚙️</div><div class="empty-txt">index.html の冒頭にある<br>SCRIPT_URL にApps ScriptのURLを設定してください</div></div>';
-    });
-    return;
-  }
-  setupPWA();
-  loadCache();
-  Promise.all([srv('setupSheets').catch(()=>({ok:false})), srv('getTagSettings').catch(()=>({}))])
-    .then(([_,ts])=>{if(ts&&ts.wants)tagSettings=ts; ldW();ldS();ldT();ldTd();ldR();})
-    .catch(()=>{ldW();ldS();ldT();ldTd();ldR();});
-}
-init();
+loadData();
 </script>
 </body>
 </html>

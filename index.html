@@ -481,7 +481,7 @@ function sw(tab) {
   rpTab(tab);
 }
 
-// ===== 賢い読み込み (遅延ロードでGoogleをパンクさせない！) =====
+// ===== 特定のタブのデータを取得する関数 =====
 async function loadTab(tab) {
   if(tab === 'archive') return;
   const apiMap = { wants:'getWants', shopping:'getShopping', talking:'getTalking', todo:'getTodos', restaurant:'getRestaurants' };
@@ -498,7 +498,7 @@ async function loadTab(tab) {
     
     loaded[tab] = true;
     
-    // 開いているタブのデータが届いたらすぐに画面を描画
+    // 取得完了したタイミングで、もしユーザーがそのタブを開いていれば描画する
     if(cur === tab || cur === 'archive') {
       rpTab(cur);
     }
@@ -507,10 +507,18 @@ async function loadTab(tab) {
   }
 }
 
+// ===== 爆速・同時スタート処理！ =====
 async function loadInit() {
   try {
-    // 1. まずタグ設定だけサッと読み込む
-    const sett = await srv('getTagSettings');
+    const apiMap = { wants:'getWants', shopping:'getShopping', talking:'getTalking', todo:'getTodos', restaurant:'getRestaurants' };
+    
+    // 1. 【超重要】「タグ設定」と「今開いているタブのデータ」をヨーイドンで同時にリクエスト！（時間が半分になる）
+    const [sett, initData] = await Promise.all([
+      srv('getTagSettings'),
+      srv(apiMap[cur])
+    ]);
+
+    // 設定を適用
     if(sett && Object.keys(sett).length > 0) {
       conf.t_wants = sett.wants || sett.t_wants || conf.t_wants;
       conf.c_restaurant = sett.restaurantLocations || sett.c_restaurant || conf.c_restaurant;
@@ -520,11 +528,19 @@ async function loadInit() {
       conf.t_todo = sett.todo || sett.t_todo || conf.t_todo;
       Object.keys(conf).forEach(k => { if(sett[k]) conf[k] = sett[k]; });
     }
-    
-    // 2. 「今開いているタブ（やりたいこと）」を最優先で表示！
-    await loadTab(cur);
-    
-    // 3. その後、Googleをパンクさせないように残りのタブを「裏側で1つずつ」取得する
+
+    // 最初のタブのデータを適用
+    data[cur] = initData || [];
+    data[cur].forEach(i => {
+      if (!i.ID) i.ID = 'legacy-' + Math.random().toString(36).substr(2, 9);
+      store[i.ID] = i;
+    });
+    loaded[cur] = true;
+
+    // 2. ここで画面をズバッと描画！
+    rpTab(cur);
+
+    // 3. それが終わったら、ユーザーに見えない裏側でコッソリ他のタブを1つずつ取得しておく
     const allTabs = ['wants','shopping','talking','todo','restaurant'];
     for(let t of allTabs) {
       if(!loaded[t]) {

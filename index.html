@@ -32,16 +32,14 @@ body { font-size: 13px; line-height: 1.4; }
 .tab.on { color: var(--blue); }
 .tab-ico { font-size: 19px; line-height: 1; }
 
-/* ===== MAIN CONTENT & PINTEREST MASONRY (隙間ゼロ！) ===== */
+/* ===== MAIN CONTENT & PINTEREST MASONRY ===== */
 .main { padding-top: calc(var(--hdr) + var(--sat)); padding-bottom: calc(var(--tab) + var(--sab) + 16px); min-height: 100vh; }
 .panel { display: none; padding: 10px; }
 .panel.on { display: block; }
 
-/* 2列を柔軟に並べるコンテナ */
 .masonry-container { display: flex; align-items: flex-start; gap: 10px; margin-top: 8px; }
 .masonry-col { display: flex; flex-direction: column; gap: 10px; flex: 1; min-width: 0; }
 
-/* ご要望の「白い箱」デザイン */
 .g-card { background: var(--card); border-radius: 12px; padding: 10px; border: 1px solid var(--border); box-shadow: 0 1px 3px rgba(0,0,0,.04); }
 .g-hd { font-size: 13px; font-weight: 800; color: #444; margin-bottom: 10px; display: flex; align-items: center; gap: 5px; border-bottom: 1px solid #F0EDE8; padding-bottom: 6px; }
 .g-dot { color: var(--blue); font-size: 10px; }
@@ -79,7 +77,7 @@ body { font-size: 13px; line-height: 1.4; }
 .fab:active { transform: scale(.95); }
 .fab.hide { display: none; }
 
-/* ===== COMPACT MODAL FORM (ダイエット版) ===== */
+/* ===== COMPACT MODAL FORM ===== */
 .overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,.45); z-index: 300; align-items: flex-end; }
 .overlay.on { display: flex; }
 .sheet { background: #fff; border-radius: 20px 20px 0 0; width: 100%; max-height: 88vh; overflow-y: auto; padding: 0 16px calc(16px + var(--sab)); }
@@ -148,7 +146,6 @@ body { font-size: 13px; line-height: 1.4; }
 <div id="toast" class="toast"></div>
 
 <script>
-// ご自身のApps Script URL
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBwT7jAEcrH9R9WrWjlzut-vBHTCxWIRG3bCmiUVWAz2ojJgjBFDnRp4l4G13qu2_4rQ/exec';
 
 const TABS = ['wants','shopping','talking','todo','restaurant','archive'];
@@ -157,6 +154,9 @@ let cur = 'wants';
 let data = { wants:[], shopping:[], talking:[], todo:[], restaurant:[] };
 const store = {};
 const flt = { wants:[], shopping:[], talking:[], todo:[], restaurant:[] };
+
+// 各タブのデータが読み込み完了したかを管理するフラグ
+let loaded = { wants:false, shopping:false, talking:false, todo:false, restaurant:false };
 
 let conf = {
   c_wants: ['お出かけ','おうち','旅行'], t_wants: ['サクッと','雨の日OK','1日がっつり'],
@@ -177,9 +177,15 @@ function pTags(s){ return String(s||'').split(',').map(x=>x.trim()).filter(Boole
 function d2i(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return d.toISOString().split('T')[0];}catch(e){return'';} }
 function fDate(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return `${d.getMonth()+1}/${d.getDate()}`;}catch(e){return'';} }
 
-// ===== 画面描画 (JS制御による完璧なテトリス配置) =====
+// ===== 画面描画 =====
 function rpTab(tab) {
   if(tab === 'archive') return rpA();
+  
+  // まだ裏側で読み込み中の場合はスピナーを表示したままにする
+  if (!loaded[tab]) {
+    document.getElementById('p-'+tab).innerHTML = '<div class="spin"></div>';
+    return;
+  }
   
   const items = data[tab].filter(i => {
     const name = String(i.Title || i.Name || '').trim();
@@ -215,7 +221,6 @@ function rpTab(tab) {
     map[c].push(i);
   });
 
-  // 短い列を自動判定して箱を埋めていくロジック
   let colHeights = [0, 0];
   let colHtml = ['', ''];
 
@@ -239,10 +244,8 @@ function rpTab(tab) {
     });
     card += `</div>`;
 
-    // 短い方の列（右か左か）を判定してカードを入れる
     let targetCol = colHeights[0] <= colHeights[1] ? 0 : 1;
     colHtml[targetCol] += card;
-    // アイテム数から高さを概算して追加（箱が大きく伸びてもデッドスペースを防ぐ）
     colHeights[targetCol] += 40 + (catItems.length * 45); 
   });
 
@@ -276,7 +279,6 @@ function rpA() {
   document.getElementById('p-archive').innerHTML = h || '<div class="empty">完了したアイテムがありません</div>';
 }
 
-// ===== 爆速状態変更 (Optimistic UI) =====
 function markDone(tab, id) {
   const item = store[id]; if(!item) return;
   if(tab==='wants') item.Done = 'TRUE';
@@ -307,7 +309,7 @@ function markUndone(tab, id) {
   srv(apiMap[tab], {id}).catch(() => toast('通信エラー'));
 }
 
-// ===== コンパクトフォーム UI =====
+// ===== コンパクトフォーム =====
 function openForm(id) {
   const item = id ? store[id] : {};
   let tab = cur === 'archive' ? 'wants' : cur;
@@ -371,7 +373,6 @@ function selCat(btn) {
 }
 function closeMod(){ document.getElementById('ov').classList.remove('on'); }
 
-// ===== 爆速送信 =====
 function submitForm() {
   const id = document.getElementById('f-id').value;
   const tab = document.getElementById('f-tab').value;
@@ -395,7 +396,7 @@ function submitForm() {
     toast('一括追加しています...');
     const titles = title.split('\n').map(t=>t.trim()).filter(Boolean);
     Promise.all(titles.map(t => srv('addShopping', {title:t, category:cat, tags:tags, memo:memo})))
-      .then(()=> { toast('追加しました'); loadData(); }).catch(()=>toast('エラーが発生しました'));
+      .then(()=> { toast('追加しました'); loadTab('shopping'); }).catch(()=>toast('エラーが発生しました'));
     return;
   }
 
@@ -480,11 +481,36 @@ function sw(tab) {
   rpTab(tab);
 }
 
-function loadData() {
-  Promise.all([
-    srv('getTagSettings'),
-    srv('getWants'), srv('getShopping'), srv('getTalking'), srv('getTodos'), srv('getRestaurants')
-  ]).then(([sett, w, s, ta, td, r]) => {
+// ===== 賢い読み込み (遅延ロードでGoogleをパンクさせない！) =====
+async function loadTab(tab) {
+  if(tab === 'archive') return;
+  const apiMap = { wants:'getWants', shopping:'getShopping', talking:'getTalking', todo:'getTodos', restaurant:'getRestaurants' };
+  
+  try {
+    const res = await srv(apiMap[tab]);
+    data[tab] = res || [];
+    
+    // 古いデータ保護（ID付与）
+    data[tab].forEach(i => {
+      if (!i.ID) i.ID = 'legacy-' + Math.random().toString(36).substr(2, 9);
+      store[i.ID] = i;
+    });
+    
+    loaded[tab] = true;
+    
+    // 開いているタブのデータが届いたらすぐに画面を描画
+    if(cur === tab || cur === 'archive') {
+      rpTab(cur);
+    }
+  } catch(e) {
+    console.error(tab + 'の読み込みエラー', e);
+  }
+}
+
+async function loadInit() {
+  try {
+    // 1. まずタグ設定だけサッと読み込む
+    const sett = await srv('getTagSettings');
     if(sett && Object.keys(sett).length > 0) {
       conf.t_wants = sett.wants || sett.t_wants || conf.t_wants;
       conf.c_restaurant = sett.restaurantLocations || sett.c_restaurant || conf.c_restaurant;
@@ -495,24 +521,24 @@ function loadData() {
       Object.keys(conf).forEach(k => { if(sett[k]) conf[k] = sett[k]; });
     }
     
-    data.wants = w||[]; data.shopping = s||[]; data.talking = ta||[]; data.todo = td||[]; data.restaurant = r||[];
+    // 2. 「今開いているタブ（やりたいこと）」を最優先で表示！
+    await loadTab(cur);
     
-    // 【バグ修正】古いデータ（町田など）に自動でIDを振って完了できるようにする保護機能
-    [data.wants, data.shopping, data.talking, data.todo, data.restaurant].forEach(arr => {
-      arr.forEach(i => {
-        if (!i.ID) i.ID = 'legacy-' + Math.random().toString(36).substr(2, 9);
-        store[i.ID] = i;
-      });
-    });
-    
-    rpTab(cur);
-  }).catch(e => {
+    // 3. その後、Googleをパンクさせないように残りのタブを「裏側で1つずつ」取得する
+    const allTabs = ['wants','shopping','talking','todo','restaurant'];
+    for(let t of allTabs) {
+      if(!loaded[t]) {
+        await loadTab(t);
+      }
+    }
+  } catch(e) {
     console.error(e);
     toast('通信エラー');
-  });
+  }
 }
 
-loadData();
+// アプリ起動
+loadInit();
 </script>
 </body>
 </html>

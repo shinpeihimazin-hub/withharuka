@@ -25,7 +25,13 @@ body { font-size: 13px; line-height: 1.4; }
 
 /* ===== HEADER & TABS ===== */
 .hdr { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding-top: var(--sat); background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 14px; height: calc(var(--hdr) + var(--sat)); }
-.hdr-title { font-size: 15px; font-weight: 800; flex: 1; }
+.hdr-title { font-size: 15px; font-weight: 800; flex: 1; display: flex; align-items: center; }
+
+/* プロ仕様の同期中ステータス UI */
+.sync-st { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 12px; margin-left: 8px; display: none; }
+.sync-st.on { display: inline-block; background: var(--blue-light); color: var(--blue-mid); }
+.sync-st.ok { display: inline-block; background: #E8F5E9; color: #2E7D32; }
+
 .hdr-count { font-size: 11px; font-weight: 700; color: var(--text-sub); background: var(--bg); padding: 3px 8px; border-radius: 12px; }
 .tabs { position: fixed; bottom: 0; left: 0; right: 0; z-index: 100; background: #fff; border-top: 1px solid var(--border); display: flex; padding-bottom: var(--sab); }
 .tab { flex: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px; background: none; border: none; cursor: pointer; color: var(--text-hint); font-size: 9px; font-weight: 700; height: var(--tab); }
@@ -116,7 +122,11 @@ body { font-size: 13px; line-height: 1.4; }
 </head>
 <body>
 
-<header class="hdr"><span class="hdr-title">2人のリスト 💑</span><span id="hdr-cnt" class="hdr-count"></span></header>
+<header class="hdr">
+  <span class="hdr-title">2人のリスト 💑<span id="sync-st" class="sync-st"></span></span>
+  <span id="hdr-cnt" class="hdr-count"></span>
+</header>
+
 <main class="main">
   <div id="p-wants" class="panel on"><div class="spin"></div></div>
   <div id="p-shopping" class="panel"><div class="spin"></div></div>
@@ -147,15 +157,12 @@ body { font-size: 13px; line-height: 1.4; }
 
 <script>
 const SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbwBwT7jAEcrH9R9WrWjlzut-vBHTCxWIRG3bCmiUVWAz2ojJgjBFDnRp4l4G13qu2_4rQ/exec';
-
 const TABS = ['wants','shopping','talking','todo','restaurant','archive'];
 const LABELS = {wants:'やりたいこと', shopping:'買い物', talking:'話すこと', todo:'Todo', restaurant:'ご飯屋'};
 let cur = 'wants';
 let data = { wants:[], shopping:[], talking:[], todo:[], restaurant:[] };
 const store = {};
 const flt = { wants:[], shopping:[], talking:[], todo:[], restaurant:[] };
-
-// 各タブのデータが読み込み完了したかを管理するフラグ
 let loaded = { wants:false, shopping:false, talking:false, todo:false, restaurant:false };
 
 let conf = {
@@ -165,6 +172,27 @@ let conf = {
   c_todo: ['手続き','家事','仕事'], t_todo: ['急ぎ','重要'],
   c_restaurant: ['渋谷','新宿','東京'], t_restaurant: ['ランチ','ディナー','居酒屋','カフェ']
 };
+
+// 【重要: エラー回避の安全装置付きキャッシュ機能】
+const cache = {
+  get(k) { try { return JSON.parse(localStorage.getItem('twolist_'+k)); } catch(e) { return null; } },
+  set(k, v) { try { localStorage.setItem('twolist_'+k, JSON.stringify(v)); } catch(e) {} }
+};
+
+// 🔄 同期ステータスを画面上に表示する処理
+function setSync(mode) {
+  const e = document.getElementById('sync-st');
+  if(!e) return;
+  e.style.background = ''; e.style.color = '';
+  if(mode === 'sync') {
+    e.className = 'sync-st on'; e.textContent = '🔄 同期中...';
+  } else if (mode === 'ok') {
+    e.className = 'sync-st ok'; e.textContent = '✅ 最新';
+    setTimeout(() => { if(e.className.includes('ok')) e.className = 'sync-st'; }, 2000); // 2秒後に消す
+  } else if (mode === 'err') {
+    e.className = 'sync-st on'; e.style.background = '#FDECEA'; e.style.color = '#D34545'; e.textContent = '⚠ エラー';
+  }
+}
 
 function srv(action, payload) {
   let url = SCRIPT_URL + '?action=' + encodeURIComponent(action);
@@ -181,7 +209,6 @@ function fDate(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; 
 function rpTab(tab) {
   if(tab === 'archive') return rpA();
   
-  // まだ裏側で読み込み中の場合はスピナーを表示したままにする
   if (!loaded[tab]) {
     document.getElementById('p-'+tab).innerHTML = '<div class="spin"></div>';
     return;
@@ -287,6 +314,7 @@ function markDone(tab, id) {
   if(tab==='todo') item.Done = 'TRUE';
   if(tab==='restaurant') item.Visited = 'TRUE';
   
+  cache.set('data', data); // ローカルの記憶もすぐ更新！
   rpTab(tab);
   toast('✓ 完了しました');
   
@@ -302,6 +330,7 @@ function markUndone(tab, id) {
   if(tab==='todo') item.Done = 'FALSE';
   if(tab==='restaurant') item.Visited = 'FALSE';
   
+  cache.set('data', data);
   rpA();
   toast('戻しました');
   
@@ -396,7 +425,7 @@ function submitForm() {
     toast('一括追加しています...');
     const titles = title.split('\n').map(t=>t.trim()).filter(Boolean);
     Promise.all(titles.map(t => srv('addShopping', {title:t, category:cat, tags:tags, memo:memo})))
-      .then(()=> { toast('追加しました'); loadTab('shopping'); }).catch(()=>toast('エラーが発生しました'));
+      .then(()=> { toast('追加しました'); srv('getShopping').then(r=>{ data['shopping']=r||[]; cache.set('data', data); loadTab('shopping'); }); }).catch(()=>toast('エラーが発生しました'));
     return;
   }
 
@@ -416,6 +445,8 @@ function submitForm() {
     data[tab].push(newItem);
   }
   store[newId] = newItem;
+  
+  cache.set('data', data); // ローカルを更新して0秒表示をキープ
   rpTab(tab); 
   toast(isEdit ? '保存しました' : '追加しました');
 
@@ -463,6 +494,7 @@ function addMgr() {
 function rmMgr(i) { conf[editKey].splice(i,1); renderMgr(); }
 function saveMgr() {
   toast('設定を保存中...');
+  cache.set('conf', conf); // すぐにキャッシュに保存
   srv('saveTagSettings', conf).then(() => {
     toast('保存しました');
     const parts = editKey.split('_');
@@ -481,44 +513,34 @@ function sw(tab) {
   rpTab(tab);
 }
 
-// ===== 特定のタブのデータを取得する関数 =====
-async function loadTab(tab) {
-  if(tab === 'archive') return;
-  const apiMap = { wants:'getWants', shopping:'getShopping', talking:'getTalking', todo:'getTodos', restaurant:'getRestaurants' };
-  
-  try {
-    const res = await srv(apiMap[tab]);
-    data[tab] = res || [];
-    
-    // 古いデータ保護（ID付与）
-    data[tab].forEach(i => {
-      if (!i.ID) i.ID = 'legacy-' + Math.random().toString(36).substr(2, 9);
-      store[i.ID] = i;
-    });
-    
-    loaded[tab] = true;
-    
-    // 取得完了したタイミングで、もしユーザーがそのタブを開いていれば描画する
-    if(cur === tab || cur === 'archive') {
-      rpTab(cur);
-    }
-  } catch(e) {
-    console.error(tab + 'の読み込みエラー', e);
-  }
-}
-
-// ===== 爆速・同時スタート処理！ =====
+// ===== 🚀【超重要】0秒起動とハイブリッド同期 =====
 async function loadInit() {
+  // 1. スマホの記憶（キャッシュ）があれば、0秒で瞬時に表示！
+  let cachedData = cache.get('data');
+  if (cachedData) {
+    data = cachedData;
+    ['wants','shopping','talking','todo','restaurant'].forEach(t => {
+      if(data[t]) data[t].forEach(i => store[i.ID] = i);
+    });
+    loaded = { wants:true, shopping:true, talking:true, todo:true, restaurant:true };
+  }
+  let cachedConf = cache.get('conf');
+  if (cachedConf) conf = cachedConf;
+
+  // キャッシュがあれば一瞬で画面を描画する
+  if(cachedData) rpTab(cur);
+
+  // 2. 「同期中...」マークを出して、裏側で最新版を取得
+  setSync('sync');
   try {
     const apiMap = { wants:'getWants', shopping:'getShopping', talking:'getTalking', todo:'getTodos', restaurant:'getRestaurants' };
     
-    // 1. 【超重要】「タグ設定」と「今開いているタブのデータ」をヨーイドンで同時にリクエスト！（時間が半分になる）
+    // 設定と、今開いている画面のデータを同時に取得
     const [sett, initData] = await Promise.all([
       srv('getTagSettings'),
       srv(apiMap[cur])
     ]);
 
-    // 設定を適用
     if(sett && Object.keys(sett).length > 0) {
       conf.t_wants = sett.wants || sett.t_wants || conf.t_wants;
       conf.c_restaurant = sett.restaurantLocations || sett.c_restaurant || conf.c_restaurant;
@@ -527,29 +549,40 @@ async function loadInit() {
       conf.t_talking = sett.talking || sett.t_talking || conf.t_talking;
       conf.t_todo = sett.todo || sett.t_todo || conf.t_todo;
       Object.keys(conf).forEach(k => { if(sett[k]) conf[k] = sett[k]; });
+      cache.set('conf', conf);
     }
 
-    // 最初のタブのデータを適用
     data[cur] = initData || [];
     data[cur].forEach(i => {
       if (!i.ID) i.ID = 'legacy-' + Math.random().toString(36).substr(2, 9);
       store[i.ID] = i;
     });
     loaded[cur] = true;
+    cache.set('data', data);
 
-    // 2. ここで画面をズバッと描画！
+    // 最新データで画面を書き換え、「✅ 最新」マークを出す
     rpTab(cur);
+    setSync('ok');
 
-    // 3. それが終わったら、ユーザーに見えない裏側でコッソリ他のタブを1つずつ取得しておく
+    // 3. 残りのタブはユーザーに見えない裏側で静かに取得する
     const allTabs = ['wants','shopping','talking','todo','restaurant'];
     for(let t of allTabs) {
-      if(!loaded[t]) {
-        await loadTab(t);
+      if(t !== cur) {
+        const res = await srv(apiMap[t]);
+        data[t] = res || [];
+        data[t].forEach(i => {
+          if (!i.ID) i.ID = 'legacy-' + Math.random().toString(36).substr(2, 9);
+          store[i.ID] = i;
+        });
+        loaded[t] = true;
+        cache.set('data', data);
+        // もしユーザーがその間にタブを切り替えていたら描画する
+        if(cur === t) rpTab(t);
       }
     }
   } catch(e) {
     console.error(e);
-    toast('通信エラー');
+    setSync('err');
   }
 }
 

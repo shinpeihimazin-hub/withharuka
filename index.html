@@ -27,7 +27,6 @@ body { font-size: 13px; line-height: 1.4; }
 .hdr { position: fixed; top: 0; left: 0; right: 0; z-index: 100; padding-top: var(--sat); background: #fff; border-bottom: 1px solid var(--border); display: flex; align-items: center; padding: 0 14px; height: calc(var(--hdr) + var(--sat)); }
 .hdr-title { font-size: 15px; font-weight: 800; flex: 1; display: flex; align-items: center; }
 
-/* プロ仕様の同期中ステータス UI */
 .sync-st { font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 12px; margin-left: 8px; display: none; }
 .sync-st.on { display: inline-block; background: var(--blue-light); color: var(--blue-mid); }
 .sync-st.ok { display: inline-block; background: #E8F5E9; color: #2E7D32; }
@@ -173,13 +172,11 @@ let conf = {
   c_restaurant: ['渋谷','新宿','東京'], t_restaurant: ['ランチ','ディナー','居酒屋','カフェ']
 };
 
-// 【重要: エラー回避の安全装置付きキャッシュ機能】
 const cache = {
   get(k) { try { return JSON.parse(localStorage.getItem('twolist_'+k)); } catch(e) { return null; } },
   set(k, v) { try { localStorage.setItem('twolist_'+k, JSON.stringify(v)); } catch(e) {} }
 };
 
-// 🔄 同期ステータスを画面上に表示する処理
 function setSync(mode) {
   const e = document.getElementById('sync-st');
   if(!e) return;
@@ -188,16 +185,16 @@ function setSync(mode) {
     e.className = 'sync-st on'; e.textContent = '🔄 同期中...';
   } else if (mode === 'ok') {
     e.className = 'sync-st ok'; e.textContent = '✅ 最新';
-    setTimeout(() => { if(e.className.includes('ok')) e.className = 'sync-st'; }, 2000); // 2秒後に消す
+    setTimeout(() => { if(e.className.includes('ok')) e.className = 'sync-st'; }, 2000);
   } else if (mode === 'err') {
     e.className = 'sync-st on'; e.style.background = '#FDECEA'; e.style.color = '#D34545'; e.textContent = '⚠ エラー';
   }
 }
 
 function srv(action, payload) {
-  let url = SCRIPT_URL + '?action=' + encodeURIComponent(action);
+  let url = SCRIPT_URL + '?action=' + encodeURIComponent(action) + '&t=' + Date.now();
   if(payload) url += '&data=' + encodeURIComponent(JSON.stringify(payload));
-  return fetch(url).then(r => r.json());
+  return fetch(url, {cache: 'no-store'}).then(r => r.json());
 }
 function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
 function toast(m){ const e=document.getElementById('toast'); e.textContent=m; e.classList.add('on'); setTimeout(()=>e.classList.remove('on'),2500); }
@@ -205,7 +202,6 @@ function pTags(s){ return String(s||'').split(',').map(x=>x.trim()).filter(Boole
 function d2i(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return d.toISOString().split('T')[0];}catch(e){return'';} }
 function fDate(iso){ try{const d=new Date(iso); if(isNaN(d.getTime()))return''; return `${d.getMonth()+1}/${d.getDate()}`;}catch(e){return'';} }
 
-// ===== 画面描画 =====
 function rpTab(tab) {
   if(tab === 'archive') return rpA();
   
@@ -286,7 +282,6 @@ function togFlt(tab, tag) {
   rpTab(tab);
 }
 
-// ===== アーカイブ =====
 function rpA() {
   let h = '';
   const makeList = (tab, arr, title, act) => {
@@ -314,7 +309,7 @@ function markDone(tab, id) {
   if(tab==='todo') item.Done = 'TRUE';
   if(tab==='restaurant') item.Visited = 'TRUE';
   
-  cache.set('data', data); // ローカルの記憶もすぐ更新！
+  cache.set('data', data);
   rpTab(tab);
   toast('✓ 完了しました');
   
@@ -338,7 +333,6 @@ function markUndone(tab, id) {
   srv(apiMap[tab], {id}).catch(() => toast('通信エラー'));
 }
 
-// ===== コンパクトフォーム =====
 function openForm(id) {
   const item = id ? store[id] : {};
   let tab = cur === 'archive' ? 'wants' : cur;
@@ -425,7 +419,14 @@ function submitForm() {
     toast('一括追加しています...');
     const titles = title.split('\n').map(t=>t.trim()).filter(Boolean);
     Promise.all(titles.map(t => srv('addShopping', {title:t, category:cat, tags:tags, memo:memo})))
-      .then(()=> { toast('追加しました'); srv('getShopping').then(r=>{ data['shopping']=r||[]; cache.set('data', data); loadTab('shopping'); }); }).catch(()=>toast('エラーが発生しました'));
+      .then(()=> { 
+        toast('追加しました'); 
+        srv('getShopping').then(r=>{ 
+          data['shopping']=r||[]; 
+          cache.set('data', data); 
+          rpTab('shopping');
+        }); 
+      }).catch(()=>toast('エラーが発生しました'));
     return;
   }
 
@@ -446,7 +447,7 @@ function submitForm() {
   }
   store[newId] = newItem;
   
-  cache.set('data', data); // ローカルを更新して0秒表示をキープ
+  cache.set('data', data);
   rpTab(tab); 
   toast(isEdit ? '保存しました' : '追加しました');
 
@@ -467,8 +468,6 @@ function submitForm() {
   srv(apiMap[tab], payload).catch(() => toast('裏側への保存に失敗しました'));
 }
 
-// ===== 管理UI =====
-let editKey = '';
 function openMgr(key, typeName) {
   editKey = key;
   document.getElementById('sh-title').textContent = `${typeName}を編集`;
@@ -494,7 +493,7 @@ function addMgr() {
 function rmMgr(i) { conf[editKey].splice(i,1); renderMgr(); }
 function saveMgr() {
   toast('設定を保存中...');
-  cache.set('conf', conf); // すぐにキャッシュに保存
+  cache.set('conf', conf);
   srv('saveTagSettings', conf).then(() => {
     toast('保存しました');
     const parts = editKey.split('_');
@@ -513,9 +512,8 @@ function sw(tab) {
   rpTab(tab);
 }
 
-// ===== 🚀【超重要】0秒起動とハイブリッド同期 =====
+// ===== 🚀すれ違いバグを防いだ安全なロード処理 =====
 async function loadInit() {
-  // 1. スマホの記憶（キャッシュ）があれば、0秒で瞬時に表示！
   let cachedData = cache.get('data');
   if (cachedData) {
     data = cachedData;
@@ -523,22 +521,21 @@ async function loadInit() {
       if(data[t]) data[t].forEach(i => store[i.ID] = i);
     });
     loaded = { wants:true, shopping:true, talking:true, todo:true, restaurant:true };
+    rpTab(cur);
   }
   let cachedConf = cache.get('conf');
   if (cachedConf) conf = cachedConf;
 
-  // キャッシュがあれば一瞬で画面を描画する
-  if(cachedData) rpTab(cur);
-
-  // 2. 「同期中...」マークを出して、裏側で最新版を取得
   setSync('sync');
   try {
     const apiMap = { wants:'getWants', shopping:'getShopping', talking:'getTalking', todo:'getTodos', restaurant:'getRestaurants' };
     
-    // 設定と、今開いている画面のデータを同時に取得
+    // 【バグ修正】通信を開始した時点の「最初のタブ」を固定で記憶
+    const initialTab = cur; 
+    
     const [sett, initData] = await Promise.all([
       srv('getTagSettings'),
-      srv(apiMap[cur])
+      srv(apiMap[initialTab])
     ]);
 
     if(sett && Object.keys(sett).length > 0) {
@@ -552,22 +549,22 @@ async function loadInit() {
       cache.set('conf', conf);
     }
 
-    data[cur] = initData || [];
-    data[cur].forEach(i => {
+    // 通信中に別のタブがタップされても、絶対に最初のタブ用の箱に保存する
+    data[initialTab] = initData || [];
+    data[initialTab].forEach(i => {
       if (!i.ID) i.ID = 'legacy-' + Math.random().toString(36).substr(2, 9);
       store[i.ID] = i;
     });
-    loaded[cur] = true;
-    cache.set('data', data);
+    loaded[initialTab] = true;
+    cache.set('data', data); // ここでキャッシュが正しく修復されます！
 
-    // 最新データで画面を書き換え、「✅ 最新」マークを出す
     rpTab(cur);
     setSync('ok');
 
-    // 3. 残りのタブはユーザーに見えない裏側で静かに取得する
+    // 残りのタブを確実にそれぞれの正しい箱に取得する
     const allTabs = ['wants','shopping','talking','todo','restaurant'];
     for(let t of allTabs) {
-      if(t !== cur) {
+      if(t !== initialTab) {
         const res = await srv(apiMap[t]);
         data[t] = res || [];
         data[t].forEach(i => {
@@ -576,7 +573,6 @@ async function loadInit() {
         });
         loaded[t] = true;
         cache.set('data', data);
-        // もしユーザーがその間にタブを切り替えていたら描画する
         if(cur === t) rpTab(t);
       }
     }
@@ -586,7 +582,6 @@ async function loadInit() {
   }
 }
 
-// アプリ起動
 loadInit();
 </script>
 </body>
